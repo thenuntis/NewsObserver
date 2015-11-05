@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">NewsObserver</string>
+
+    <string name="hello_world">Hello world!</string>
+    <string name="action_settings">Settings</string>
+    <string name="imgDescr">image</string>
+    <string name="dialogErrorTitle">ERROR</string>
+    <string name="dialogErrorMsg">Internet Connection Unavailable. Please Connect Your Device to Internet</string>
+    <string name="dialogErrorPositiveBtn">RETRY</string>
+    <string name="dialogErrorNegativeBtn">CANCEL</string>
+</resources>
