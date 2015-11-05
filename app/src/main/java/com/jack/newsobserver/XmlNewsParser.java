@@ -63,9 +63,6 @@ public class XmlNewsParser {
                         break;
                     case XmlPullParser.TEXT:
                         curText = xpp.getText();
-                        if (curText == null){
-                            curText = "Error while reading rss";
-                        }
                         break;
                     case XmlPullParser.END_TAG:
                         if (tagname.equalsIgnoreCase(KEY_ITEM)) {
