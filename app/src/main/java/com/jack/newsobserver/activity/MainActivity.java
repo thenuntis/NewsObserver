@@ -1,4 +1,4 @@
-package com.jack.newsobserver;
+package com.jack.newsobserver.activity;
 
 
 import android.app.Activity;
@@ -7,6 +7,7 @@ import android.app.FragmentTransaction;
 import android.os.Bundle;
 import android.widget.ProgressBar;
 
+import com.jack.newsobserver.R;
 import com.jack.newsobserver.fragments.SiteListViewFragment;
 import com.jack.newsobserver.fragments.SiteWebViewFragment;
 

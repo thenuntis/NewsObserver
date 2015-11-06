@@ -1,4 +1,4 @@
-package com.jack.newsobserver;
+package com.jack.newsobserver.adapter;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -13,6 +13,10 @@ import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import com.jack.newsobserver.ImageCache;
+import com.jack.newsobserver.R;
+import com.jack.newsobserver.StoriesDigest;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
@@ -20,43 +24,48 @@ import java.net.URL;
 import java.util.List;
 
 
-
 public class SitesAdapter extends ArrayAdapter<StoriesDigest> {
 
 
-    public SitesAdapter(Context ctx, int textViewResourceId, List<StoriesDigest> sites) {
-        super(ctx, textViewResourceId, sites);
+    public void setSites(List<StoriesDigest> sites) {
+        mSites = sites;
+        notifyDataSetChanged();
     }
 
-    private static class ViewHolder {
-        public ImageView iconImg;
-        public ProgressBar indicator;
-        public TextView nameTxt;
-        public TextView pubDateTxt;
-        public TextView authorTxt;
+    private List<StoriesDigest> mSites;
 
-        ViewHolder (View v) {
-            iconImg = (ImageView) v.findViewById(R.id.iconImg);
-            indicator = (ProgressBar) v.findViewById(R.id.progress);
-            nameTxt = (TextView) v.findViewById(R.id.nameTxt);
-            pubDateTxt = (TextView) v.findViewById(R.id.pubDateTxt);
-            authorTxt = (TextView) v.findViewById(R.id.authorTxt);
+    public SitesAdapter(Context ctx, List<StoriesDigest> sites) {
+        super(ctx, R.layout.site_list_item);
+        mSites = sites;
+    }
+
+    @Override
+    public int getCount() {
+        if (mSites != null) {
+            return mSites.size();
+        } else {
+            return 0;
         }
     }
 
     @Override
-    public View getView(int pos, View convertView, ViewGroup parent){
+    public StoriesDigest getItem(int position) {
+        return mSites.get(position);
+    }
+
+    @Override
+    public View getView(int pos, View convertView, ViewGroup parent) {
         Log.i("StoriesIndex", "getView pos = " + pos);
 
         View row = convertView;
         ViewHolder viewHolder;
 
-        if(row == null){
-            LayoutInflater inflater = (LayoutInflater)parent.getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        if (row == null) {
+            LayoutInflater inflater = (LayoutInflater) parent.getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
             row = inflater.inflate(R.layout.site_list_item, null);
             viewHolder = new ViewHolder(row);
             row.setTag(viewHolder);
-        }else {
+        } else {
             viewHolder = (ViewHolder) row.getTag();
         }
 
@@ -67,6 +76,22 @@ public class SitesAdapter extends ArrayAdapter<StoriesDigest> {
         viewHolder.authorTxt.setText(getItem(pos).getStoryAuthor());
 
         return row;
+    }
+
+    private static class ViewHolder {
+        public ImageView iconImg;
+        public ProgressBar indicator;
+        public TextView nameTxt;
+        public TextView pubDateTxt;
+        public TextView authorTxt;
+
+        ViewHolder(View v) {
+            iconImg = (ImageView) v.findViewById(R.id.iconImg);
+            indicator = (ProgressBar) v.findViewById(R.id.progress);
+            nameTxt = (TextView) v.findViewById(R.id.nameTxt);
+            pubDateTxt = (TextView) v.findViewById(R.id.pubDateTxt);
+            authorTxt = (TextView) v.findViewById(R.id.authorTxt);
+        }
     }
 
     private class GetImageTask extends AsyncTask<String, Void, Bitmap> {
@@ -103,7 +128,7 @@ public class SitesAdapter extends ArrayAdapter<StoriesDigest> {
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-            }else {
+            } else {
                 Log.e("LOG>>>>>>", "BITMAP = From Cache");
             }
             return myBitmap;
