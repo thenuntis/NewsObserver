@@ -1,9 +1,6 @@
 package com.jack.newsobserver.adapter;
 
 import android.content.Context;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.os.AsyncTask;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -13,30 +10,26 @@ import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
-import com.jack.newsobserver.ImageCache;
+import com.jack.newsobserver.manager.GetImageTask;
 import com.jack.newsobserver.R;
 import com.jack.newsobserver.StoriesDigest;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.List;
 
 
 public class SitesAdapter extends ArrayAdapter<StoriesDigest> {
-
+    Context context;
+    private List<StoriesDigest> mSites;
 
     public void setSites(List<StoriesDigest> sites) {
         mSites = sites;
         notifyDataSetChanged();
     }
 
-    private List<StoriesDigest> mSites;
-
     public SitesAdapter(Context ctx, List<StoriesDigest> sites) {
         super(ctx, R.layout.site_list_item);
         mSites = sites;
+        this.context=super.getContext();
     }
 
     @Override
@@ -69,8 +62,8 @@ public class SitesAdapter extends ArrayAdapter<StoriesDigest> {
             viewHolder = (ViewHolder) row.getTag();
         }
 
-        new GetImageTask(viewHolder).execute(getItem(pos).getImgUrl());
-
+//        new GetImageTask(viewHolder).execute(getItem(pos).getImgUrl());
+        new GetImageTask(viewHolder,context).execute(getItem(pos).getImgUrl());
         viewHolder.nameTxt.setText(getItem(pos).getStoryTitle());
         viewHolder.pubDateTxt.setText(getItem(pos).getStoryPubdate());
         viewHolder.authorTxt.setText(getItem(pos).getStoryAuthor());
@@ -78,7 +71,7 @@ public class SitesAdapter extends ArrayAdapter<StoriesDigest> {
         return row;
     }
 
-    private static class ViewHolder {
+    public static class ViewHolder {
         public ImageView iconImg;
         public ProgressBar indicator;
         public TextView nameTxt;
@@ -94,52 +87,4 @@ public class SitesAdapter extends ArrayAdapter<StoriesDigest> {
         }
     }
 
-    private class GetImageTask extends AsyncTask<String, Void, Bitmap> {
-
-        private ImageView imgIcon;
-        private ProgressBar bar;
-
-        public GetImageTask(ViewHolder viewHolder) {
-            this.imgIcon = viewHolder.iconImg;
-            this.bar = viewHolder.indicator;
-        }
-
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-            bar.setVisibility(View.VISIBLE);
-            imgIcon.setVisibility(View.INVISIBLE);
-        }
-
-        @Override
-        protected Bitmap doInBackground(String... urls) {
-
-            Bitmap myBitmap = ImageCache.getBitmapFromMemCache(urls[0]);
-            if (myBitmap == null) {
-                Log.e("LOG>>>>>>", "BITMAP = NULL");
-                try {
-                    URL url = new URL(urls[0]);
-                    HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-                    connection.setDoInput(true);
-                    connection.connect();
-                    InputStream input = connection.getInputStream();
-                    myBitmap = BitmapFactory.decodeStream(input);
-                    ImageCache.addBitmapToMemoryCache(urls[0], myBitmap);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            } else {
-                Log.e("LOG>>>>>>", "BITMAP = From Cache");
-            }
-            return myBitmap;
-        }
-
-        @Override
-        protected void onPostExecute(Bitmap bitmap) {
-            super.onPostExecute(bitmap);
-            imgIcon.setImageBitmap(bitmap);
-            bar.setVisibility(View.INVISIBLE);
-            imgIcon.setVisibility(View.VISIBLE);
-        }
-    }
 }

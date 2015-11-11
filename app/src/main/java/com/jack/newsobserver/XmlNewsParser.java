@@ -2,7 +2,6 @@ package com.jack.newsobserver;
 
 
 import android.content.Context;
-import android.util.Log;
 
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserFactory;
@@ -80,11 +79,8 @@ public class XmlNewsParser {
                             curStoriesDigest.setStoryPubdate(curText);
                         } else if (tagname.equalsIgnoreCase(KEY_DESCRIPTION) && isDescriptionFromItem) {
                             int startPos = curText.indexOf("http:");
-                            Log.i("Позиция начальная","nom pos" + startPos );
                             int finishPos = curText.indexOf("'",startPos) ;
-                            Log.i("Конечная позиция","nom pos" + finishPos );
                             curText = curText.substring(startPos,finishPos);
-                            Log.i("Весь текст", "адрес:  " + curText);
                             curStoriesDigest.setImgUrl(curText);
                         }
                         break;

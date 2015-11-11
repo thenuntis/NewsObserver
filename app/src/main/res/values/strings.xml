@@ -1,7 +1,5 @@
 <resources>
-    <string name="app_name">NewsObserver</string>
-
-    <string name="hello_world">Hello world!</string>
+    <string name="app_name">News Observer</string>
     <string name="action_settings">Settings</string>
     <string name="imgDescr">image</string>
     <string name="dialogErrorTitle">ERROR</string>

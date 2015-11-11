@@ -35,8 +35,8 @@ import java.net.URLConnection;
 public class SiteListViewFragment extends Fragment implements SwipeRefreshLayout.OnRefreshListener {
 
     public static final String TAG = "SiteListViewFragmentTag";
-    static final String SITE_URL = "http://www.cbc.ca/cmlink/rss-topstories";
-    static final String XML_FILE_NAME = "rss-topstories.xml";
+    private static final String SITE_URL = "http://www.cbc.ca/cmlink/rss-topstories";
+    private static final String XML_FILE_NAME = "rss-topstories.xml";
     private SitesAdapter mAdapter;
     private SwipeRefreshLayout mSwipeLayout;
 
@@ -86,12 +86,10 @@ public class SiteListViewFragment extends Fragment implements SwipeRefreshLayout
     @Override
     public void onResume() {
         super.onResume();
-        // mAdapter.notifyDataSetChanged();
     }
 
     private void LoadNewsList() {
         if (isNetworkAvailable()) {
-
             StoriesDownloadTask refreshing = new StoriesDownloadTask();
             refreshing.execute();
         } else {

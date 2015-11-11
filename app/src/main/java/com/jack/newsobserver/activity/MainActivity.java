@@ -1,10 +1,10 @@
 package com.jack.newsobserver.activity;
 
 
-import android.app.Activity;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.os.Bundle;
+import android.support.v7.app.ActionBarActivity;
 import android.widget.ProgressBar;
 
 import com.jack.newsobserver.R;
@@ -13,7 +13,7 @@ import com.jack.newsobserver.fragments.SiteWebViewFragment;
 
 
 
-public class MainActivity extends Activity implements SiteListViewFragment.OnSelectedLinkListener {
+public class MainActivity extends ActionBarActivity implements SiteListViewFragment.OnSelectedLinkListener {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -24,12 +24,11 @@ public class MainActivity extends Activity implements SiteListViewFragment.OnSel
         progressBar.setVisibility(ProgressBar.VISIBLE);
 
         FragmentManager manager = getFragmentManager();
-        //SiteListViewFragment frgmnt1 = (SiteListViewFragment) manager.findFragmentById(R.id.list_view_fragment);
 
         if (manager.findFragmentByTag(SiteListViewFragment.TAG)== null ) {
             FragmentTransaction transaction = manager.beginTransaction();
-
             transaction.add(R.id.list_view_fragment, new SiteListViewFragment(),SiteListViewFragment.TAG);
+            transaction.addToBackStack(SiteListViewFragment.TAG);
             transaction.commit();
             progressBar.setVisibility(ProgressBar.INVISIBLE);
         }
@@ -51,7 +50,7 @@ public class MainActivity extends Activity implements SiteListViewFragment.OnSel
         }
 
         transaction.replace(R.id.list_view_fragment, sitewebviewfragment, SiteWebViewFragment.TAG);
-        transaction.addToBackStack(SiteListViewFragment.TAG);
+        transaction.addToBackStack(SiteWebViewFragment.TAG);
         transaction.commit();
         sitewebviewfragment.setWebViewUrl(url);
     }
