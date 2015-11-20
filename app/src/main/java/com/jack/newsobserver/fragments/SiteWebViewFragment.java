@@ -62,11 +62,4 @@ public class SiteWebViewFragment extends Fragment {
         mWebViewBundle =new Bundle();
         mWebView.saveState(mWebViewBundle);
     }
-
-/*    @Override
-    public void onStop() {
-        super.onStop();
-        FragmentManager manager = getFragmentManager();
-        Log.i("", manager.popBackStack());
-    }*/
 }

@@ -1,7 +1,9 @@
-package com.jack.newsobserver;
+package com.jack.newsobserver.parser;
 
 
 import android.content.Context;
+
+import com.jack.newsobserver.StoriesDigest;
 
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserFactory;

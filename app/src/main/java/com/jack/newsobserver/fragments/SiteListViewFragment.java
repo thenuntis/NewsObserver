@@ -4,8 +4,6 @@ import android.app.AlertDialog.Builder;
 import android.app.Fragment;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -19,8 +17,9 @@ import android.widget.ListView;
 
 import com.jack.newsobserver.ImageCache;
 import com.jack.newsobserver.R;
-import com.jack.newsobserver.XmlNewsParser;
 import com.jack.newsobserver.adapter.SitesAdapter;
+import com.jack.newsobserver.helper.IsNetworkAvailable;
+import com.jack.newsobserver.parser.XmlNewsParser;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -35,10 +34,11 @@ import java.net.URLConnection;
 public class SiteListViewFragment extends Fragment implements SwipeRefreshLayout.OnRefreshListener {
 
     public static final String TAG = "SiteListViewFragmentTag";
-    private static final String SITE_URL = "http://www.cbc.ca/cmlink/rss-topstories";
-    private static final String XML_FILE_NAME = "rss-topstories.xml";
+//    private static final String SITE_URL = "http://www.cbc.ca/cmlink/rss-topstories";
+    private static final String XML_FILE_NAME = "rss-news.xml";
     private SitesAdapter mAdapter;
     private SwipeRefreshLayout mSwipeLayout;
+    private String mSiteUrl;
 
     public SiteListViewFragment() {
     }
@@ -76,27 +76,20 @@ public class SiteListViewFragment extends Fragment implements SwipeRefreshLayout
         LoadNewsList();
     }
 
-    private boolean isNetworkAvailable() {
-        ConnectivityManager connectivityManager
-                = (ConnectivityManager) getActivity().getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
-        return activeNetworkInfo != null && activeNetworkInfo.isConnected();
-    }
-
     @Override
     public void onResume() {
         super.onResume();
     }
 
-    private void LoadNewsList() {
-        if (isNetworkAvailable()) {
+    public void LoadNewsList() {
+        if (new IsNetworkAvailable(getActivity()).testNetwork()) {
             StoriesDownloadTask refreshing = new StoriesDownloadTask();
             refreshing.execute();
         } else {
             final Builder dialogMsg = new Builder(getActivity());
             dialogMsg.setTitle(R.string.dialogErrorTitle)
                     .setMessage(R.string.dialogErrorMsg);
-            dialogMsg.setPositiveButton(R.string.dialogErrorPositiveBtn, new DialogInterface.OnClickListener() {
+            dialogMsg.setPositiveButton(R.string.dialogErrorPositiveRetryBtn, new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
                     LoadNewsList();
@@ -123,7 +116,7 @@ public class SiteListViewFragment extends Fragment implements SwipeRefreshLayout
         @Override
         protected Void doInBackground(Void... arg0) {
             try {
-                downloadFromUrl(SITE_URL, getActivity().openFileOutput(XML_FILE_NAME, Context.MODE_PRIVATE));
+                downloadFromUrl(mSiteUrl, getActivity().openFileOutput(XML_FILE_NAME, Context.MODE_PRIVATE));
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
             }
@@ -160,7 +153,10 @@ public class SiteListViewFragment extends Fragment implements SwipeRefreshLayout
             mAdapter.setSites(XmlNewsParser.getTopStories(getActivity()));
             Log.i("StoriesDigest", "adapter size = " + mAdapter.getCount());
         }
-    }
 
+    }
+    public void setListViewUrl (String url) {
+        mSiteUrl = url;
+    }
 
 }

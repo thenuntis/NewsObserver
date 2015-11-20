@@ -10,7 +10,7 @@ import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
-import com.jack.newsobserver.manager.GetImageTask;
+import com.jack.newsobserver.manager.GetImageTaskManager;
 import com.jack.newsobserver.R;
 import com.jack.newsobserver.StoriesDigest;
 
@@ -62,8 +62,8 @@ public class SitesAdapter extends ArrayAdapter<StoriesDigest> {
             viewHolder = (ViewHolder) row.getTag();
         }
 
-//        new GetImageTask(viewHolder).execute(getItem(pos).getImgUrl());
-        new GetImageTask(viewHolder,context).execute(getItem(pos).getImgUrl());
+//        new GetImageTaskManager(viewHolder).execute(getItem(pos).getImgUrl());
+        new GetImageTaskManager(viewHolder,context).execute(getItem(pos).getImgUrl());
         viewHolder.nameTxt.setText(getItem(pos).getStoryTitle());
         viewHolder.pubDateTxt.setText(getItem(pos).getStoryPubdate());
         viewHolder.authorTxt.setText(getItem(pos).getStoryAuthor());

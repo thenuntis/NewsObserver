@@ -17,13 +17,13 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
-public class GetImageTask extends AsyncTask<String, Void, Bitmap> {
+public class GetImageTaskManager extends AsyncTask<String, Void, Bitmap> {
 
     private ImageView imgIcon;
     private ProgressBar bar;
     private Context ctx;
 
-    public GetImageTask(ViewHolder viewHolder, Context context) {
+    public GetImageTaskManager(ViewHolder viewHolder, Context context) {
         this.ctx=context;
         this.imgIcon = viewHolder.iconImg;
         this.bar = viewHolder.indicator;
