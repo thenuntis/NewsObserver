@@ -8,26 +8,27 @@ import android.os.Bundle;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarActivity;
-import android.util.Log;
+import android.support.v7.app.ActionBarDrawerToggle;
 import android.view.View;
-import android.widget.AdapterView;
-import android.widget.ListView;
+import android.widget.ExpandableListView;
 import android.widget.ProgressBar;
-import android.widget.Toast;
 
 import com.jack.newsobserver.R;
-import com.jack.newsobserver.adapter.DrawerListCursorAdapter;
+import com.jack.newsobserver.adapter.DrawerCursorAdapter;
 import com.jack.newsobserver.fragments.SiteListViewFragment;
 import com.jack.newsobserver.fragments.SiteWebViewFragment;
 import com.jack.newsobserver.helper.DatabaseHelper;
+import com.jack.newsobserver.helper.IsNetworkAvailable;
+import com.jack.newsobserver.manager.AlertDialogManager;
+import com.jack.newsobserver.manager.GetDataFromHtmlManager;
 
 
-public class MainActivity extends ActionBarActivity implements SiteListViewFragment.OnSelectedLinkListener,
-        AdapterView.OnItemClickListener {
+public class MainActivity extends ActionBarActivity implements SiteListViewFragment.OnSelectedLinkListener, ExpandableListView.OnChildClickListener {
 
     private DrawerLayout mDrawerLayout;
-
+    private ActionBarDrawerToggle mDrawerToggle;
     private Cursor mCursor;
+    private DrawerCursorAdapter mCursorAdapter;
     private DatabaseHelper mDatabaseHelper;
     private static final String HTML_FEED_URL = "http://www.cbc.ca/rss/";
 
@@ -48,26 +49,45 @@ public class MainActivity extends ActionBarActivity implements SiteListViewFragm
             transaction.commit();
             progressBar.setVisibility(ProgressBar.INVISIBLE);
         }
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setHomeButtonEnabled(true);
 
         mDatabaseHelper = new DatabaseHelper(this);
         if (mDatabaseHelper.initDataBase()){
-            Log.e("-->()<--","empty base, needtofill");
-            mDatabaseHelper.fillDataBaseFromUrl(HTML_FEED_URL);
-            Log.e("-->()<--", "base not empty, filled");
+            if (new IsNetworkAvailable(this).testNetwork()) {
+                GetDataFromHtmlManager mGetDataFromHtmlManager = new GetDataFromHtmlManager(mDatabaseHelper,this);
+                mGetDataFromHtmlManager.execute(HTML_FEED_URL);
+            } else{
+                new AlertDialogManager().alertDialogShow(this);
+            }
         }
-        String query = "SELECT a._id, b.name AS category, a.name, a.link " +
-                "FROM topics a, category b " +
-                "WHERE a.category_id=b._id and b._id=1";
-        mCursor = mDatabaseHelper.createCursor(query);
-        Log.e("-->()<--", String.valueOf(mCursor.getCount()));
-        ListView mDrawerListView = (ListView) findViewById(R.id.drawer_ltr_listview);
-        DrawerListCursorAdapter drawerListCursorAdapter = new DrawerListCursorAdapter(this,mCursor,0);
-        mDrawerListView.setOnItemClickListener(this);
-        mDrawerListView.setAdapter(drawerListCursorAdapter);
-
-
+        initDrawerExpList();
     }
 
+
+
+    public DrawerCursorAdapter initDrawerExpList () {
+        mCursor = mDatabaseHelper.getGroupCursor();
+        ExpandableListView mExpandableListView = (ExpandableListView)findViewById(R.id.drawer_ltr_expListView);
+        mCursorAdapter = new DrawerCursorAdapter(this,
+                mCursor,
+                R.layout.drawer_explist_group_item,
+                new String[]{"name"},
+                new int[] {R.id.textGroup},
+                R.layout.drawer_explist_child_item,
+                new String[]{"name"},
+                new int[] {R.id.textChild});
+        mExpandableListView.setAdapter(mCursorAdapter);
+        getSupportActionBar().setSubtitle(mCursor.getString(1)
+                + ": " + mCursorAdapter.getChild(0, 0).getString(1));
+        mExpandableListView.setOnChildClickListener(this);
+        return mCursorAdapter;
+    }
+
+
+    public void onGetDataFromHtmlDone() {
+        initDrawerExpList().notifyDataSetChanged();
+    }
     @Override
     public void onListItemSelected(String url) {
         FragmentManager manager = getFragmentManager();
@@ -91,10 +111,9 @@ public class MainActivity extends ActionBarActivity implements SiteListViewFragm
 
     @Override
     public void onBackPressed() {
-
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.main_drawer_layout);
-        if (drawer.isDrawerOpen(GravityCompat.START)) {
-            drawer.closeDrawer(GravityCompat.START);
+        mDrawerLayout = (DrawerLayout) findViewById(R.id.main_drawer_layout);
+        if (mDrawerLayout.isDrawerOpen(GravityCompat.START)) {
+            mDrawerLayout.closeDrawer(GravityCompat.START);
         } else {
             FragmentManager manager = getFragmentManager();
             if (manager.getBackStackEntryCount()>0){
@@ -106,20 +125,21 @@ public class MainActivity extends ActionBarActivity implements SiteListViewFragm
     }
 
     @Override
-    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        Log.e("--_^^_--", String.valueOf(position));
-        Log.e("--^(_)^--", String.valueOf(id));
-        String mLink = mDatabaseHelper.getStringFromCursor(mCursor,position,"link");
+    public boolean onChildClick(ExpandableListView parent, View v, int groupPosition, int childPosition, long id) {
+        String groupTitle = mCursor.getString(1);
+        Cursor childCursor = mCursorAdapter.getChild(groupPosition, childPosition);
+        String childTitle = childCursor.getString(1);
+        String mLink = childCursor.getString(2);
+        getSupportActionBar().setSubtitle(groupTitle+": "+childTitle);
         FragmentManager manager = getFragmentManager();
         SiteListViewFragment siteListViewFragment = (SiteListViewFragment) manager.findFragmentByTag(SiteListViewFragment.TAG);
         if (siteListViewFragment!= null ){
             siteListViewFragment.setListViewUrl(mLink);
-            DrawerLayout drawerLayout = (DrawerLayout) findViewById(R.id.main_drawer_layout);
-            drawerLayout.closeDrawer(GravityCompat.START);
-            siteListViewFragment.LoadNewsList();
+            siteListViewFragment.onRefresh();
         }
-        Toast.makeText(this,mLink + " was selected " ,Toast.LENGTH_SHORT).show();
+        DrawerLayout drawerLayout = (DrawerLayout) findViewById(R.id.main_drawer_layout);
+        drawerLayout.closeDrawer(GravityCompat.START);
+        return false;
     }
-
 
 }

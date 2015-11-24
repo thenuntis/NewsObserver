@@ -1,13 +1,10 @@
 package com.jack.newsobserver.helper;
 
+import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.util.Log;
-
-import com.jack.newsobserver.manager.AlertDialogManager;
-import com.jack.newsobserver.manager.GetDataFromHtmlManager;
 
 public class DatabaseHelper extends SQLiteOpenHelper{
     public static final String DATABASE_NAME = "newsobserverdb.db";
@@ -28,11 +25,9 @@ public class DatabaseHelper extends SQLiteOpenHelper{
             + "REFERENCES " + NEWS_CATEGORY_TABLE + " ("+ID_COLUMN+"), "
             + NAME_COLUMN + " text not null, "
             + TOPICS_LINK_COLUMN + " text not null" + ")";
-    private Context ctx;
 
     public DatabaseHelper(Context context) {
         super(context, DATABASE_NAME, null, SCHEMA);
-        this.ctx = context;
     }
 
     @Override
@@ -66,17 +61,16 @@ public class DatabaseHelper extends SQLiteOpenHelper{
         return(val == 0);
     }
 
-    public void fillDataBaseFromUrl(String url) {
-        Log.e("-->()<--", "fillbasefromurl method");
+    public void fillDataBaseFromUrl(String tableName, ContentValues newValues) {
         SQLiteDatabase db = this.getWritableDatabase();
-        if (new IsNetworkAvailable(ctx).testNetwork()){
-            Log.e("-->()<--","net-OK, gotofilldatafromhtml");
-            GetDataFromHtmlManager mGetDataFromHtmlManager = new GetDataFromHtmlManager(db);
-            mGetDataFromHtmlManager.execute(url);
-            Log.e("-->()<--", "filling complete");
-        }else{
-            new AlertDialogManager().alertDialogShow(ctx);
+        db.beginTransaction();
+        try {
+            db.insert(tableName,null,newValues);
+            db.setTransactionSuccessful();
+        }finally {
+            db.endTransaction();
         }
+
     }
 
     public String getStringFromCursor (Cursor cursor,int row,String col) {
@@ -87,8 +81,16 @@ public class DatabaseHelper extends SQLiteOpenHelper{
         }else {
             value = "empty cursor";
         }
-
         return value;
+    }
+    public Cursor getGroupCursor () {
+        String query = "SELECT _id, name FROM category";
+        return this.createCursor(query);
+    }
+
+    public Cursor getTopicDataByCategory (int id) {
+        String query = "SELECT _id, name,link FROM topics WHERE category_id=" + String.valueOf(id);
+        return this.createCursor(query);
     }
 
 }

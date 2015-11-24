@@ -23,14 +23,13 @@ public class XmlNewsParser {
     static final String KEY_AUTHOR = "author";
     static final String KEY_PUBDATE = "pubdate";
     static final String KEY_DESCRIPTION = "description";
-    static final String XML_FILE_NAME = "rss-topstories.xml";
-
+    static String mXmlFileName ;
     private static boolean isTitleFromItem = false;
     private static boolean isLinkFromItem = false;
     private static boolean isDescriptionFromItem = false;
 
-    public static List<StoriesDigest> getTopStories(Context ctx) {
-
+    public static List<StoriesDigest> getTopStories(Context ctx, String s) {
+        mXmlFileName=s;
 
         List<StoriesDigest> storiesDigest = new ArrayList<>();
 
@@ -42,7 +41,7 @@ public class XmlNewsParser {
             XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
             XmlPullParser xpp = factory.newPullParser();
 
-            FileInputStream fis = ctx.openFileInput(XML_FILE_NAME);
+            FileInputStream fis = ctx.openFileInput(mXmlFileName);
             BufferedReader reader = new BufferedReader(new InputStreamReader(fis));
 
             xpp.setInput(reader);

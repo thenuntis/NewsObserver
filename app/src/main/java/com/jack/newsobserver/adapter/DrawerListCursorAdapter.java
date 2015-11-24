@@ -12,8 +12,12 @@ import com.jack.newsobserver.R;
 
 public class DrawerListCursorAdapter extends CursorAdapter {
 
-    public DrawerListCursorAdapter(Context context, Cursor c, int flags) {
+
+    private final String field;
+
+    public DrawerListCursorAdapter(Context context, Cursor c, int flags,String s) {
         super(context, c, flags);
+        this.field = s;
     }
     @Override
     public View newView(Context context, Cursor cursor, ViewGroup parent) {
@@ -23,9 +27,8 @@ public class DrawerListCursorAdapter extends CursorAdapter {
     @Override
     public void bindView(View view, Context context, Cursor cursor) {
         TextView textView = (TextView) view.findViewById(R.id.drawer_ltr_listview_item);
-        String mName = cursor.getString(cursor.getColumnIndex("name"));
+        String mName = cursor.getString(cursor.getColumnIndex(field));
         textView.setText(mName);
     }
-
 
 }

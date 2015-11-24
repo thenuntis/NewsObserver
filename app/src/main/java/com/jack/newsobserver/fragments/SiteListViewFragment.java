@@ -38,7 +38,7 @@ public class SiteListViewFragment extends Fragment implements SwipeRefreshLayout
     private static final String XML_FILE_NAME = "rss-news.xml";
     private SitesAdapter mAdapter;
     private SwipeRefreshLayout mSwipeLayout;
-    private String mSiteUrl;
+    private String mSiteUrl = "http://www.cbc.ca/cmlink/rss-topstories" ;
 
     public SiteListViewFragment() {
     }
@@ -102,7 +102,8 @@ public class SiteListViewFragment extends Fragment implements SwipeRefreshLayout
                 }
             });
             dialogMsg.show();
-            mAdapter.setSites(XmlNewsParser.getTopStories(getActivity()));
+            Log.w("--OO--","EMPTY LIST="+mAdapter.getCount());
+            mAdapter.setSites(XmlNewsParser.getTopStories(getActivity(),XML_FILE_NAME));
             getActivity().setProgressBarVisibility(false);
         }
     }
@@ -150,8 +151,7 @@ public class SiteListViewFragment extends Fragment implements SwipeRefreshLayout
         @Override
         protected void onPostExecute(Void result) {
             mSwipeLayout.setRefreshing(false);
-            mAdapter.setSites(XmlNewsParser.getTopStories(getActivity()));
-            Log.i("StoriesDigest", "adapter size = " + mAdapter.getCount());
+            mAdapter.setSites(XmlNewsParser.getTopStories(getActivity(), XML_FILE_NAME));
         }
 
     }

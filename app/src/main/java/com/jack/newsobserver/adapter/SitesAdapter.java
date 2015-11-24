@@ -1,7 +1,6 @@
 package com.jack.newsobserver.adapter;
 
 import android.content.Context;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -10,9 +9,9 @@ import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
-import com.jack.newsobserver.manager.GetImageTaskManager;
 import com.jack.newsobserver.R;
 import com.jack.newsobserver.StoriesDigest;
+import com.jack.newsobserver.manager.GetImageTaskManager;
 
 import java.util.List;
 
@@ -48,7 +47,6 @@ public class SitesAdapter extends ArrayAdapter<StoriesDigest> {
 
     @Override
     public View getView(int pos, View convertView, ViewGroup parent) {
-        Log.i("StoriesIndex", "getView pos = " + pos);
 
         View row = convertView;
         ViewHolder viewHolder;
@@ -62,7 +60,6 @@ public class SitesAdapter extends ArrayAdapter<StoriesDigest> {
             viewHolder = (ViewHolder) row.getTag();
         }
 
-//        new GetImageTaskManager(viewHolder).execute(getItem(pos).getImgUrl());
         new GetImageTaskManager(viewHolder,context).execute(getItem(pos).getImgUrl());
         viewHolder.nameTxt.setText(getItem(pos).getStoryTitle());
         viewHolder.pubDateTxt.setText(getItem(pos).getStoryPubdate());

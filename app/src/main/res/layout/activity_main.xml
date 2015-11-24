@@ -21,16 +21,18 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center" />
     </FrameLayout>
-    <ListView
-        android:id="@+id/drawer_ltr_listview"
+    <ExpandableListView
+        android:id="@+id/drawer_ltr_expListView"
         android:layout_width="240dp"
         android:layout_height="match_parent"
         android:layout_gravity="start"
+        android:groupIndicator="@drawable/group_indicator_img"
+        android:indicatorLeft="180dp"
+        android:indicatorRight="230dp"
         android:choiceMode="singleChoice"
         android:divider="@android:color/transparent"
-        android:dividerHeight="0dp"
+        android:dividerHeight="1dp"
         android:background="#FFF"/>
-
 
 </android.support.v4.widget.DrawerLayout>
 
