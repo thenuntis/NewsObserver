@@ -2,7 +2,6 @@ package com.jack.newsobserver.manager;
 
 import android.content.ContentValues;
 import android.os.AsyncTask;
-import android.util.Log;
 
 import com.jack.newsobserver.activity.MainActivity;
 import com.jack.newsobserver.helper.DatabaseHelper;
@@ -15,20 +14,18 @@ import org.jsoup.select.Elements;
 import java.io.IOException;
 
 public class GetDataFromHtmlManager extends AsyncTask <String, Void, Void> {
-//    SQLiteDatabase mBase;
     DatabaseHelper mDatabaseHelper;
     MainActivity mActivity;
     private static final String MAIN_HTML_ELEMENT = "table.feeds";
 
-    public GetDataFromHtmlManager(DatabaseHelper mDbHelper, MainActivity activity) {
-//      this.mBase  = base;
-        this.mDatabaseHelper=mDbHelper;
+    public GetDataFromHtmlManager(MainActivity activity) {
         this.mActivity = activity;
     }
 
     @Override
     protected Void doInBackground(String... params) {
         Document doc;
+        mDatabaseHelper = new DatabaseHelper(mActivity);
         try {
             doc  = Jsoup.connect(params[0]).get();
             Elements feedElements = doc.select(MAIN_HTML_ELEMENT);
@@ -54,7 +51,6 @@ public class GetDataFromHtmlManager extends AsyncTask <String, Void, Void> {
 
                 }
                 mCategoryValue++;
-//                mDatabaseHelper.fillDataBaseFromUrl(newCategoryValues,newTopicsValues);
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -64,7 +60,6 @@ public class GetDataFromHtmlManager extends AsyncTask <String, Void, Void> {
 
     @Override
     protected void onPostExecute(Void aVoid) {
-        Log.e("GetDataFromHtmlManager","------");
        mActivity.onGetDataFromHtmlDone();
     }
 }

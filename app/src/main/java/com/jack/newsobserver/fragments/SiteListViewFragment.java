@@ -8,7 +8,6 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.widget.SwipeRefreshLayout;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -34,11 +33,11 @@ import java.net.URLConnection;
 public class SiteListViewFragment extends Fragment implements SwipeRefreshLayout.OnRefreshListener {
 
     public static final String TAG = "SiteListViewFragmentTag";
-//    private static final String SITE_URL = "http://www.cbc.ca/cmlink/rss-topstories";
     private static final String XML_FILE_NAME = "rss-news.xml";
     private SitesAdapter mAdapter;
     private SwipeRefreshLayout mSwipeLayout;
-    private String mSiteUrl = "http://www.cbc.ca/cmlink/rss-topstories" ;
+//    private String mSiteUrl = "http://www.cbc.ca/cmlink/rss-topstories" ;
+    private String mSiteUrl;
 
     public SiteListViewFragment() {
     }
@@ -102,9 +101,8 @@ public class SiteListViewFragment extends Fragment implements SwipeRefreshLayout
                 }
             });
             dialogMsg.show();
-            Log.w("--OO--","EMPTY LIST="+mAdapter.getCount());
-            mAdapter.setSites(XmlNewsParser.getTopStories(getActivity(),XML_FILE_NAME));
-            getActivity().setProgressBarVisibility(false);
+            mAdapter.setSites(XmlNewsParser.getTopStories(getActivity(), XML_FILE_NAME));
+
         }
     }
 
