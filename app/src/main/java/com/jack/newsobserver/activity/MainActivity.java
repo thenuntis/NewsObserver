@@ -162,11 +162,6 @@ public class MainActivity extends ActionBarActivity implements SiteListViewFragm
         return mCursorAdapter;
     }
 
-
-/*    public void onGetDataFromHtmlDone() {
-        initDrawerExpList().notifyDataSetChanged();
-    }*/
-
     @Override
     public void onListItemSelected(String url) {
         FragmentManager manager = getFragmentManager();

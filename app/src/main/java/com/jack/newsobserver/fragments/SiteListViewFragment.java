@@ -36,7 +36,6 @@ public class SiteListViewFragment extends Fragment implements SwipeRefreshLayout
     private static final String XML_FILE_NAME = "rss-news.xml";
     private SitesAdapter mAdapter;
     private SwipeRefreshLayout mSwipeLayout;
-//    private String mSiteUrl = "http://www.cbc.ca/cmlink/rss-topstories" ;
     private String mSiteUrl;
 
     public SiteListViewFragment() {
