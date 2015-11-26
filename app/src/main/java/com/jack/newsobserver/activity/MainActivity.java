@@ -9,6 +9,7 @@ import android.support.v4.app.ActionBarDrawerToggle;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarActivity;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -95,7 +96,7 @@ public class MainActivity extends ActionBarActivity implements SiteListViewFragm
         mDatabaseHelper = new DatabaseHelper(this);
         if (mDatabaseHelper.initDataBase()){
             if (new IsNetworkAvailable(this).testNetwork()) {
-                GetDataFromHtmlManager mGetDataFromHtmlManager = new GetDataFromHtmlManager(this);
+                GetDataFromHtmlManager mGetDataFromHtmlManager = new GetDataFromHtmlManager(this,this);
                 mGetDataFromHtmlManager.execute(HTML_FEED_URL);
             } else{
                 new AlertDialogManager().alertDialogShow(this);
@@ -171,15 +172,17 @@ public class MainActivity extends ActionBarActivity implements SiteListViewFragm
 
         if (siteWebViewFragment != null) {
             siteWebViewFragment.setWebViewUrl(url);
+            Log.w("--webview","ne null "+url);
         }else {
             siteWebViewFragment = new SiteWebViewFragment();
+            Log.w("--webview","null "+ url);
         }
 
         transaction.replace(R.id.list_view_fragment, siteWebViewFragment, SiteWebViewFragment.TAG);
-        transaction.addToBackStack(SiteWebViewFragment.TAG);
-        transaction.commit();
+        transaction.addToBackStack(subTitleString);
         siteWebViewFragment.setWebViewUrl(url);
-    }
+        transaction.commit();
+}
 
     @Override
     public void onBackPressed() {
@@ -189,6 +192,7 @@ public class MainActivity extends ActionBarActivity implements SiteListViewFragm
         } else {
             FragmentManager manager = getFragmentManager();
             if (manager.getBackStackEntryCount()>0){
+                getSupportActionBar().setSubtitle(manager.getBackStackEntryAt(manager.getBackStackEntryCount()-1).getName());
                 manager.popBackStack();
             }else {
                 this.finish();
@@ -207,14 +211,15 @@ public class MainActivity extends ActionBarActivity implements SiteListViewFragm
         getSupportActionBar().setSubtitle(subTitleString);
         FragmentManager manager = getFragmentManager();
         SiteListViewFragment siteListViewFragment = (SiteListViewFragment) manager.findFragmentByTag(SiteListViewFragment.TAG);
-        if (siteListViewFragment!= null){
-            if (siteListViewFragment.isHidden()){
-                siteListViewFragment = new SiteListViewFragment();
-                FragmentTransaction transaction = manager.beginTransaction();
-                transaction.replace(R.id.list_view_fragment, siteListViewFragment, SiteListViewFragment.TAG);
-                transaction.addToBackStack(SiteListViewFragment.TAG);
-                transaction.commit();
-            }
+        SiteWebViewFragment siteWebViewFragment = (SiteWebViewFragment) manager.findFragmentByTag(SiteWebViewFragment.TAG);
+        if (siteWebViewFragment!=null && siteWebViewFragment.isVisible()){
+            siteListViewFragment = new SiteListViewFragment();
+            FragmentTransaction transaction = manager.beginTransaction();
+            transaction.replace(R.id.list_view_fragment, siteListViewFragment, SiteListViewFragment.TAG);
+            transaction.addToBackStack(subTitleString);
+            siteListViewFragment.setListViewUrl(newsListUrl);
+            transaction.commit();
+        }else {
             siteListViewFragment.setListViewUrl(newsListUrl);
             siteListViewFragment.onRefresh();
         }

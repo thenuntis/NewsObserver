@@ -8,6 +8,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.widget.SwipeRefreshLayout;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -54,16 +55,17 @@ public class SiteListViewFragment extends Fragment implements SwipeRefreshLayout
         mSwipeLayout = (SwipeRefreshLayout) rootView.findViewById(R.id.swipe_container);
         mSwipeLayout.setOnRefreshListener(this);
         ListView storiesList = (ListView) rootView.findViewById(R.id.storiesList);
+        mAdapter = new SitesAdapter(getActivity(), null);
+        storiesList.setAdapter(mAdapter);
         storiesList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 String url = mAdapter.getItem(position).getStoryLink();
                 OnSelectedLinkListener listener = (OnSelectedLinkListener) getActivity();
+                Log.w("--ListURL",url);
                 listener.onListItemSelected(url);
             }
         });
-        mAdapter = new SitesAdapter(getActivity(), null);
-        storiesList.setAdapter(mAdapter);
         LoadNewsList();
         return rootView;
     }

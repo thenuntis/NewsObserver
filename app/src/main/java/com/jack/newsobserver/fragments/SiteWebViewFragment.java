@@ -19,6 +19,7 @@ public class SiteWebViewFragment extends Fragment {
     private WebView mWebView;
     private Bundle mWebViewBundle;
     private ProgressBar mWebViewBar;
+    private boolean mNewUrlFlag = true;
 
     public SiteWebViewFragment(){
     }
@@ -44,22 +45,32 @@ public class SiteWebViewFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         final View rootView = inflater.inflate(R.layout.site_webview_fragment,container,false);
         mWebView = (WebView) rootView.findViewById(R.id.webView);
-        if (mWebViewBundle == null) {
-            mWebView.getSettings().setJavaScriptEnabled(true);
-            mWebView.loadUrl(mSiteUrl);
+        mWebView.getSettings().setJavaScriptEnabled(true);
+        if (mNewUrlFlag){
+            if (mWebViewBundle == null  ) {
+                mWebView.loadUrl(mSiteUrl);
+            }else {
+                mWebView.restoreState(mWebViewBundle);
+            }
         }else {
-            mWebView.restoreState(mWebViewBundle);
+            mWebView.loadUrl(mSiteUrl);
         }
+
         return rootView;
     }
     public void setWebViewUrl (String url) {
+        if (mSiteUrl !=null){
+            mNewUrlFlag = mSiteUrl != url;
+        }
         mSiteUrl = url;
     }
 
     @Override
     public void onPause() {
         super.onPause();
+        mNewUrlFlag = true;
         mWebViewBundle =new Bundle();
         mWebView.saveState(mWebViewBundle);
+
     }
 }

@@ -6,6 +6,8 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
+import java.util.ArrayList;
+
 public class DatabaseHelper extends SQLiteOpenHelper{
     public static final String DATABASE_NAME = "newsobserverdb.db";
     public static final int SCHEMA=1;
@@ -72,22 +74,14 @@ public class DatabaseHelper extends SQLiteOpenHelper{
         }
 
     }
-    public void fillTablesFromHtml (ContentValues col1, ContentValues col2,
-                                   ContentValues col3,ContentValues col4){
+    public void fillTablesFromHtml (ContentValues category, ArrayList<ContentValues> topics){
         SQLiteDatabase db = this.getReadableDatabase();
         try {
             db.beginTransaction();
-            ContentValues categoryValue = new ContentValues();
-            for (int i = 1; i <=col1.size();i++){
-                categoryValue.put(NAME_COLUMN,String.valueOf(col1.get(String.valueOf(i))));
-                db.insert(NEWS_CATEGORY_TABLE, null, categoryValue);
-            }
-            ContentValues topicsValue = new ContentValues();
-            for (int i = 1; i <=col2.size(); i++){
-                topicsValue.put(TOPICS_CATEGORY_ID_COLUMN, String.valueOf(col2.get(String.valueOf(i))));
-                topicsValue.put(NAME_COLUMN, String.valueOf(col3.get(String.valueOf(i))));
-                topicsValue.put(TOPICS_LINK_COLUMN, String.valueOf(col4.get(String.valueOf(i))) );
-                db.insert(NEWS_TOPICS_TABLE, null, topicsValue);
+            long categoryId = db.insert(NEWS_CATEGORY_TABLE, null, category);
+            for (ContentValues topic : topics) {
+                topic.put(TOPICS_CATEGORY_ID_COLUMN, categoryId);
+                db.insert(NEWS_TOPICS_TABLE, null, topic);
             }
             db.setTransactionSuccessful();
         }finally {

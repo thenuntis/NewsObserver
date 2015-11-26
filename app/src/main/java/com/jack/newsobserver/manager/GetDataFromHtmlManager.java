@@ -1,9 +1,9 @@
 package com.jack.newsobserver.manager;
 
 import android.content.ContentValues;
+import android.content.Context;
 import android.os.AsyncTask;
 
-import com.jack.newsobserver.activity.MainActivity;
 import com.jack.newsobserver.helper.DatabaseHelper;
 
 import org.jsoup.Jsoup;
@@ -12,57 +12,52 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.io.IOException;
+import java.util.ArrayList;
 
 public class GetDataFromHtmlManager extends AsyncTask <String, Void, Void> {
-//    DatabaseHelper mDatabaseHelper;
-    MainActivity mActivity;
+    Context mContext;
     private static final String MAIN_HTML_ELEMENT = "table.feeds";
     private OnFillFinished mCallBack ;
 
-    public GetDataFromHtmlManager(MainActivity activity) {
-        this.mActivity = activity;
+    public GetDataFromHtmlManager(Context context, OnFillFinished callBack) {
+        this.mContext = context;
+        this.mCallBack=callBack;
     }
 
     @Override
     protected Void doInBackground(String... params) {
         Document doc;
-        DatabaseHelper mDatabaseHelper = new DatabaseHelper(mActivity);
+        DatabaseHelper mDatabaseHelper = new DatabaseHelper(mContext);
         ContentValues newCategoryNames = new ContentValues();
-        ContentValues newTopicsNames = new ContentValues();
-        ContentValues newTopicsCategoryIds = new ContentValues();
-        ContentValues newTopicsLinks = new ContentValues();
         try {
             doc  = Jsoup.connect(params[0]).get();
             Elements feedElements = doc.select(MAIN_HTML_ELEMENT);
-            int mCategoryValue = 1;
             for (Element elemA : feedElements){
                 Element elementsA = doc.select(MAIN_HTML_ELEMENT).get(feedElements.indexOf(elemA));
                 Document docA = Jsoup.parse(String.valueOf(elementsA));
                 String elemB = docA.select("td.title").first().text();
-                String contentKey = String.valueOf(mCategoryValue);
-                newCategoryNames.put(contentKey, elemB);
+                newCategoryNames.put(DatabaseHelper.NAME_COLUMN, elemB);
                 Elements elemC = docA.select("td.content");
+                ArrayList<ContentValues> newTopicsList = new ArrayList<>();
                 for (Element elemD:elemC){
+                    ContentValues newTopicsValues = new ContentValues();
                     Document docB = Jsoup.parse(String.valueOf(elemD));
                     Elements elemE = docB.select("a");
-                    newTopicsCategoryIds.put(contentKey, mCategoryValue);
-                    newTopicsNames.put(contentKey, elemE.text());
-                    newTopicsLinks.put(contentKey, elemE.attr("href"));
+                    newTopicsValues.put(DatabaseHelper.NAME_COLUMN, elemE.text());
+                    newTopicsValues.put(DatabaseHelper.TOPICS_LINK_COLUMN, elemE.attr("href"));
+                    newTopicsList.add(newTopicsValues);
                 }
-                mCategoryValue++;
+                mDatabaseHelper.fillTablesFromHtml(newCategoryNames, newTopicsList);
             }
         } catch (IOException e) {
             e.printStackTrace();
-        } finally {
-            mDatabaseHelper.fillTablesFromHtml(newCategoryNames, newTopicsCategoryIds,
-                    newTopicsNames, newTopicsLinks);
         }
         return null;
     }
 
     @Override
     protected void onPostExecute(Void aVoid) {
-        mActivity.callBack();
+        mCallBack.callBack();
     }
 
     public interface OnFillFinished {
