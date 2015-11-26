@@ -56,7 +56,6 @@ public class MainActivity extends ActionBarActivity implements SiteListViewFragm
 
         FragmentManager manager = getFragmentManager();
 
-
         if (manager.findFragmentByTag(SiteListViewFragment.TAG)== null ) {
             FragmentTransaction transaction = manager.beginTransaction();
             SiteListViewFragment siteListViewFragment = new SiteListViewFragment();
@@ -64,8 +63,6 @@ public class MainActivity extends ActionBarActivity implements SiteListViewFragm
             siteListViewFragment.setListViewUrl(newsListUrl);
             transaction.commit();
         }
-
-
 
         mDrawerLayout=(DrawerLayout) findViewById(R.id.main_drawer_layout);
         ActionBarDrawerToggle mDrawerToggle = new ActionBarDrawerToggle(
@@ -76,19 +73,15 @@ public class MainActivity extends ActionBarActivity implements SiteListViewFragm
                 R.string.navigation_drawer_close) {
             public void onDrawerClosed(View view) {
                 super.onDrawerClosed(view);
-
                 invalidateOptionsMenu();
             }
-
             public void onDrawerOpened(View drawerView) {
                 super.onDrawerOpened(drawerView);
-
                 invalidateOptionsMenu();
             }
         };
         mDrawerLayout.setDrawerListener(mDrawerToggle);
         mDrawerToggle.syncState();
-
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setHomeButtonEnabled(true);
 
@@ -117,12 +110,6 @@ public class MainActivity extends ActionBarActivity implements SiteListViewFragm
             default:
                 return super.onOptionsItemSelected(item);
         }
-    }
-
-    @Override
-    public boolean onPrepareOptionsMenu(Menu menu) {
-        boolean drawerOpen = mDrawerLayout.isDrawerOpen(GravityCompat.START);
-        return super.onPrepareOptionsMenu(menu);
     }
     @Override
     protected void onSaveInstanceState(Bundle outState) {
