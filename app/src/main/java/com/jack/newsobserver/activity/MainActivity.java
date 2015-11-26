@@ -9,7 +9,6 @@ import android.support.v4.app.ActionBarDrawerToggle;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarActivity;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -20,7 +19,7 @@ import com.jack.newsobserver.adapter.DrawerCursorAdapter;
 import com.jack.newsobserver.fragments.SiteListViewFragment;
 import com.jack.newsobserver.fragments.SiteWebViewFragment;
 import com.jack.newsobserver.helper.DatabaseHelper;
-import com.jack.newsobserver.helper.IsNetworkAvailable;
+import com.jack.newsobserver.helper.TestNetwork;
 import com.jack.newsobserver.manager.AlertDialogManager;
 import com.jack.newsobserver.manager.GetDataFromHtmlManager;
 
@@ -57,7 +56,6 @@ public class MainActivity extends ActionBarActivity implements SiteListViewFragm
 
         FragmentManager manager = getFragmentManager();
 
-
         if (manager.findFragmentByTag(SiteListViewFragment.TAG)== null ) {
             FragmentTransaction transaction = manager.beginTransaction();
             SiteListViewFragment siteListViewFragment = new SiteListViewFragment();
@@ -65,8 +63,6 @@ public class MainActivity extends ActionBarActivity implements SiteListViewFragm
             siteListViewFragment.setListViewUrl(newsListUrl);
             transaction.commit();
         }
-
-
 
         mDrawerLayout=(DrawerLayout) findViewById(R.id.main_drawer_layout);
         ActionBarDrawerToggle mDrawerToggle = new ActionBarDrawerToggle(
@@ -77,25 +73,21 @@ public class MainActivity extends ActionBarActivity implements SiteListViewFragm
                 R.string.navigation_drawer_close) {
             public void onDrawerClosed(View view) {
                 super.onDrawerClosed(view);
-
                 invalidateOptionsMenu();
             }
-
             public void onDrawerOpened(View drawerView) {
                 super.onDrawerOpened(drawerView);
-
                 invalidateOptionsMenu();
             }
         };
         mDrawerLayout.setDrawerListener(mDrawerToggle);
         mDrawerToggle.syncState();
-
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setHomeButtonEnabled(true);
 
         mDatabaseHelper = new DatabaseHelper(this);
         if (mDatabaseHelper.initDataBase()){
-            if (new IsNetworkAvailable(this).testNetwork()) {
+            if (new TestNetwork(this).isNetworkAvailable()) {
                 GetDataFromHtmlManager mGetDataFromHtmlManager = new GetDataFromHtmlManager(this,this);
                 mGetDataFromHtmlManager.execute(HTML_FEED_URL);
             } else{
@@ -118,12 +110,6 @@ public class MainActivity extends ActionBarActivity implements SiteListViewFragm
             default:
                 return super.onOptionsItemSelected(item);
         }
-    }
-
-    @Override
-    public boolean onPrepareOptionsMenu(Menu menu) {
-        boolean drawerOpen = mDrawerLayout.isDrawerOpen(GravityCompat.START);
-        return super.onPrepareOptionsMenu(menu);
     }
     @Override
     protected void onSaveInstanceState(Bundle outState) {
@@ -172,17 +158,15 @@ public class MainActivity extends ActionBarActivity implements SiteListViewFragm
 
         if (siteWebViewFragment != null) {
             siteWebViewFragment.setWebViewUrl(url);
-            Log.w("--webview","ne null "+url);
         }else {
             siteWebViewFragment = new SiteWebViewFragment();
-            Log.w("--webview","null "+ url);
         }
 
         transaction.replace(R.id.list_view_fragment, siteWebViewFragment, SiteWebViewFragment.TAG);
         transaction.addToBackStack(subTitleString);
         siteWebViewFragment.setWebViewUrl(url);
         transaction.commit();
-}
+    }
 
     @Override
     public void onBackPressed() {
@@ -192,7 +176,8 @@ public class MainActivity extends ActionBarActivity implements SiteListViewFragm
         } else {
             FragmentManager manager = getFragmentManager();
             if (manager.getBackStackEntryCount()>0){
-                getSupportActionBar().setSubtitle(manager.getBackStackEntryAt(manager.getBackStackEntryCount()-1).getName());
+                getSupportActionBar().setSubtitle(manager.getBackStackEntryAt(
+                        manager.getBackStackEntryCount()-1).getName());
                 manager.popBackStack();
             }else {
                 this.finish();

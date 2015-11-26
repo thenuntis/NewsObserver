@@ -4,14 +4,14 @@ import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 
-public class IsNetworkAvailable  {
+public class TestNetwork {
     Context context;
 
-    public IsNetworkAvailable (Context ctx) {
+    public TestNetwork(Context ctx) {
         this.context = ctx;
     }
 
-    public boolean testNetwork() {
+    public boolean isNetworkAvailable() {
         ConnectivityManager connectivityManager
                 = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();

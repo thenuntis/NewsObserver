@@ -17,6 +17,12 @@ public class DatabaseHelper extends SQLiteOpenHelper{
     public static final String NEWS_CATEGORY_TABLE = "category";
     public static final String ID_COLUMN = "_id";
     public static final String NAME_COLUMN = "name";
+    public static final String NEWS_LIST_TABLE = "newslist";
+    public static final String LIST_TITLE_COLUMN = "title";
+    public static final String LIST_AUTHOR_COLUMN = "author";
+    public static final String LIST_PUBDATE_COLUMN = "pubdate";
+    public static final String LIST_IMGURL_COLUMN = "imgurl";
+    public static final String LIST_LINK_COLUMN = "link";
 
     public static final String CATEGORY_TABLE_CREATE = "create table " + NEWS_CATEGORY_TABLE + "("
             + ID_COLUMN   + " integer primary key autoincrement, "
@@ -27,6 +33,14 @@ public class DatabaseHelper extends SQLiteOpenHelper{
             + "REFERENCES " + NEWS_CATEGORY_TABLE + " ("+ID_COLUMN+"), "
             + NAME_COLUMN + " text not null, "
             + TOPICS_LINK_COLUMN + " text not null" + ")";
+    public static final String NEWSLIST_TABLE_CREATE ="create table " + NEWS_LIST_TABLE +"("
+            + ID_COLUMN   + " integer primary key autoincrement, "
+            + LIST_TITLE_COLUMN + " text not null, "
+            + LIST_AUTHOR_COLUMN + " text not null, "
+            + LIST_PUBDATE_COLUMN + " text not null, "
+            + LIST_IMGURL_COLUMN + " text not null, "
+            + LIST_LINK_COLUMN + " text not null" + ")";
+
 
     public DatabaseHelper(Context context) {
         super(context, DATABASE_NAME, null, SCHEMA);
@@ -36,6 +50,7 @@ public class DatabaseHelper extends SQLiteOpenHelper{
     public void onCreate(final SQLiteDatabase db) {
         db.execSQL(CATEGORY_TABLE_CREATE);
         db.execSQL(TOPICS_TABLE_CREATE);
+        db.execSQL(NEWSLIST_TABLE_CREATE);
     }
 
     @Override

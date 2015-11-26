@@ -18,7 +18,7 @@ import android.widget.ListView;
 import com.jack.newsobserver.ImageCache;
 import com.jack.newsobserver.R;
 import com.jack.newsobserver.adapter.SitesAdapter;
-import com.jack.newsobserver.helper.IsNetworkAvailable;
+import com.jack.newsobserver.helper.TestNetwork;
 import com.jack.newsobserver.parser.XmlNewsParser;
 
 import java.io.BufferedInputStream;
@@ -82,7 +82,7 @@ public class SiteListViewFragment extends Fragment implements SwipeRefreshLayout
     }
 
     public void LoadNewsList() {
-        if (new IsNetworkAvailable(getActivity()).testNetwork()) {
+        if (new TestNetwork(getActivity()).isNetworkAvailable()) {
             StoriesDownloadTask refreshing = new StoriesDownloadTask();
             refreshing.execute();
         } else {
