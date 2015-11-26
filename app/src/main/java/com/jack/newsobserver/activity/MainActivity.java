@@ -5,12 +5,10 @@ import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.database.Cursor;
 import android.os.Bundle;
-import android.os.Handler;
 import android.support.v4.app.ActionBarDrawerToggle;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarActivity;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -95,12 +93,6 @@ public class MainActivity extends ActionBarActivity implements SiteListViewFragm
         getSupportActionBar().setHomeButtonEnabled(true);
 
         mDatabaseHelper = new DatabaseHelper(this);
-        Handler handler = new Handler();
-        handler.postDelayed(new Runnable() {
-            public void run() {
-
-            }
-        }, 2000);
         if (mDatabaseHelper.initDataBase()){
             if (new IsNetworkAvailable(this).testNetwork()) {
                 GetDataFromHtmlManager mGetDataFromHtmlManager = new GetDataFromHtmlManager(this);
@@ -236,11 +228,7 @@ public class MainActivity extends ActionBarActivity implements SiteListViewFragm
     }
 
     @Override
-    public void callBack(boolean isFinish) {
-        if (isFinish){
-            Log.w("--__--","good code");
-            initDrawerExpList().notifyDataSetChanged();
-        }
-
+    public void callBack() {
+        initDrawerExpList().notifyDataSetChanged();
     }
 }

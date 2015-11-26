@@ -62,17 +62,11 @@ public class GetDataFromHtmlManager extends AsyncTask <String, Void, Void> {
 
     @Override
     protected void onPostExecute(Void aVoid) {
-        mCallBack = new OnFillFinished() {
-            @Override
-            public void callBack(boolean isFinish) {
-
-            }
-        };
-        mCallBack.callBack(true);
+        mActivity.callBack();
 //       mActivity.onGetDataFromHtmlDone();
     }
 
     public interface OnFillFinished {
-        void callBack(boolean isFinish);
+        void callBack();
     }
 }
