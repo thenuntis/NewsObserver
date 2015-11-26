@@ -5,10 +5,12 @@ import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.database.Cursor;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v4.app.ActionBarDrawerToggle;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarActivity;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -24,10 +26,10 @@ import com.jack.newsobserver.manager.AlertDialogManager;
 import com.jack.newsobserver.manager.GetDataFromHtmlManager;
 
 
-public class MainActivity extends ActionBarActivity implements SiteListViewFragment.OnSelectedLinkListener, ExpandableListView.OnChildClickListener {
+public class MainActivity extends ActionBarActivity implements SiteListViewFragment.OnSelectedLinkListener,
+        ExpandableListView.OnChildClickListener, GetDataFromHtmlManager.OnFillFinished {
 
     private DrawerLayout mDrawerLayout;
-    private ActionBarDrawerToggle mDrawerToggle;
     private Cursor mCursor;
     private DrawerCursorAdapter mCursorAdapter;
     private DatabaseHelper mDatabaseHelper;
@@ -44,6 +46,7 @@ public class MainActivity extends ActionBarActivity implements SiteListViewFragm
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
         if (savedInstanceState != null){
             subTitleString =savedInstanceState.getString(SUBTITLE_KEY);
             newsListUrl =savedInstanceState.getString(RECENT_URL_KEY);
@@ -67,12 +70,12 @@ public class MainActivity extends ActionBarActivity implements SiteListViewFragm
 
 
         mDrawerLayout=(DrawerLayout) findViewById(R.id.main_drawer_layout);
-        mDrawerToggle = new ActionBarDrawerToggle(
+        ActionBarDrawerToggle mDrawerToggle = new ActionBarDrawerToggle(
                 this,
                 mDrawerLayout,
                 R.drawable.ic_drawer,
                 R.string.navigation_drawer_open,
-                R.string.navigation_drawer_close){
+                R.string.navigation_drawer_close) {
             public void onDrawerClosed(View view) {
                 super.onDrawerClosed(view);
 
@@ -92,6 +95,12 @@ public class MainActivity extends ActionBarActivity implements SiteListViewFragm
         getSupportActionBar().setHomeButtonEnabled(true);
 
         mDatabaseHelper = new DatabaseHelper(this);
+        Handler handler = new Handler();
+        handler.postDelayed(new Runnable() {
+            public void run() {
+
+            }
+        }, 2000);
         if (mDatabaseHelper.initDataBase()){
             if (new IsNetworkAvailable(this).testNetwork()) {
                 GetDataFromHtmlManager mGetDataFromHtmlManager = new GetDataFromHtmlManager(this);
@@ -162,9 +171,9 @@ public class MainActivity extends ActionBarActivity implements SiteListViewFragm
     }
 
 
-    public void onGetDataFromHtmlDone() {
+/*    public void onGetDataFromHtmlDone() {
         initDrawerExpList().notifyDataSetChanged();
-    }
+    }*/
 
     @Override
     public void onListItemSelected(String url) {
@@ -213,7 +222,7 @@ public class MainActivity extends ActionBarActivity implements SiteListViewFragm
         SiteListViewFragment siteListViewFragment = (SiteListViewFragment) manager.findFragmentByTag(SiteListViewFragment.TAG);
         if (siteListViewFragment!= null){
             if (siteListViewFragment.isHidden()){
-                SiteWebViewFragment siteWebViewFragment = (SiteWebViewFragment) manager.findFragmentByTag(SiteWebViewFragment.TAG);
+                siteListViewFragment = new SiteListViewFragment();
                 FragmentTransaction transaction = manager.beginTransaction();
                 transaction.replace(R.id.list_view_fragment, siteListViewFragment, SiteListViewFragment.TAG);
                 transaction.addToBackStack(SiteListViewFragment.TAG);
@@ -226,4 +235,12 @@ public class MainActivity extends ActionBarActivity implements SiteListViewFragm
         return false;
     }
 
+    @Override
+    public void callBack(boolean isFinish) {
+        if (isFinish){
+            Log.w("--__--","good code");
+            initDrawerExpList().notifyDataSetChanged();
+        }
+
+    }
 }

@@ -31,7 +31,7 @@ public class DatabaseHelper extends SQLiteOpenHelper{
     }
 
     @Override
-    public void onCreate(SQLiteDatabase db) {
+    public void onCreate(final SQLiteDatabase db) {
         db.execSQL(CATEGORY_TABLE_CREATE);
         db.execSQL(TOPICS_TABLE_CREATE);
     }
@@ -62,17 +62,38 @@ public class DatabaseHelper extends SQLiteOpenHelper{
     }
 
     public void fillDataBaseFromUrl(String tableName, ContentValues newValues) {
-        SQLiteDatabase db = this.getWritableDatabase();
+        SQLiteDatabase db = this.getReadableDatabase();
         db.beginTransaction();
         try {
-            db.insert(tableName,null,newValues);
+            db.insert(tableName, null, newValues);
             db.setTransactionSuccessful();
         }finally {
             db.endTransaction();
         }
 
     }
-
+    public void fillTablesFromHtml (ContentValues col1, ContentValues col2,
+                                   ContentValues col3,ContentValues col4){
+        SQLiteDatabase db = this.getReadableDatabase();
+        try {
+            db.beginTransaction();
+            ContentValues categoryValue = new ContentValues();
+            for (int i = 1; i <=col1.size();i++){
+                categoryValue.put(NAME_COLUMN,String.valueOf(col1.get(String.valueOf(i))));
+                db.insert(NEWS_CATEGORY_TABLE, null, categoryValue);
+            }
+            ContentValues topicsValue = new ContentValues();
+            for (int i = 1; i <=col2.size(); i++){
+                topicsValue.put(TOPICS_CATEGORY_ID_COLUMN, String.valueOf(col2.get(String.valueOf(i))));
+                topicsValue.put(NAME_COLUMN, String.valueOf(col3.get(String.valueOf(i))));
+                topicsValue.put(TOPICS_LINK_COLUMN, String.valueOf(col4.get(String.valueOf(i))) );
+                db.insert(NEWS_TOPICS_TABLE, null, topicsValue);
+            }
+            db.setTransactionSuccessful();
+        }finally {
+            db.endTransaction();
+        }
+    }
     public String getStringFromCursor (Cursor cursor,int row,String col) {
         String value;
         if (cursor !=null){
