@@ -8,9 +8,9 @@ import android.database.sqlite.SQLiteOpenHelper;
 
 import java.util.ArrayList;
 
-public class DatabaseHelper extends SQLiteOpenHelper{
+public class DatabaseHelper extends SQLiteOpenHelper {
     public static final String DATABASE_NAME = "newsobserverdb.db";
-    public static final int SCHEMA=1;
+    public static final int SCHEMA = 1;
     public static final String NEWS_TOPICS_TABLE = "topics";
     public static final String TOPICS_CATEGORY_ID_COLUMN = "category_id";
     public static final String TOPICS_LINK_COLUMN = "link";
@@ -23,32 +23,41 @@ public class DatabaseHelper extends SQLiteOpenHelper{
     public static final String LIST_PUBDATE_COLUMN = "pubdate";
     public static final String LIST_IMGURL_COLUMN = "imgurl";
     public static final String LIST_LINK_COLUMN = "link";
-
     public static final String CATEGORY_TABLE_CREATE = "create table " + NEWS_CATEGORY_TABLE + "("
-            + ID_COLUMN   + " integer primary key autoincrement, "
+            + ID_COLUMN + " integer primary key autoincrement, "
             + NAME_COLUMN + " text not null" + ")";
     public static final String TOPICS_TABLE_CREATE = "create table " + NEWS_TOPICS_TABLE + "("
-            + ID_COLUMN   + " integer primary key autoincrement, "
+            + ID_COLUMN + " integer primary key autoincrement, "
             + TOPICS_CATEGORY_ID_COLUMN + " integer not null "
-            + "REFERENCES " + NEWS_CATEGORY_TABLE + " ("+ID_COLUMN+"), "
+            + "REFERENCES " + NEWS_CATEGORY_TABLE + " (" + ID_COLUMN + "), "
             + NAME_COLUMN + " text not null, "
             + TOPICS_LINK_COLUMN + " text not null" + ")";
-    public static final String NEWSLIST_TABLE_CREATE ="create table " + NEWS_LIST_TABLE +"("
-            + ID_COLUMN   + " integer primary key autoincrement, "
+    public static final String NEWSLIST_TABLE_CREATE = "create table " + NEWS_LIST_TABLE + "("
+            + ID_COLUMN + " integer primary key autoincrement, "
             + LIST_TITLE_COLUMN + " text not null, "
             + LIST_AUTHOR_COLUMN + " text not null, "
             + LIST_PUBDATE_COLUMN + " text not null, "
             + LIST_IMGURL_COLUMN + " text not null, "
             + LIST_LINK_COLUMN + " text not null" + ")";
+    private static DatabaseHelper sDatabaseHelper;
 
-
-    public DatabaseHelper(Context context) {
+    private DatabaseHelper(Context context) {
         super(context, DATABASE_NAME, null, SCHEMA);
+    }
+
+    public static synchronized DatabaseHelper getInstance(Context context) {
+        if (null == sDatabaseHelper) {
+            sDatabaseHelper = new DatabaseHelper(context);
+        }
+        return sDatabaseHelper;
     }
 
     @Override
     public void onCreate(final SQLiteDatabase db) {
-        db.execSQL(CATEGORY_TABLE_CREATE);
+        String sql = "create table " + NEWS_CATEGORY_TABLE + "("
+                + ID_COLUMN + " integer primary key autoincrement, "
+                + NAME_COLUMN + " text not null" + ")";
+        db.execSQL(sql);
         db.execSQL(TOPICS_TABLE_CREATE);
         db.execSQL(NEWSLIST_TABLE_CREATE);
     }
@@ -61,21 +70,24 @@ public class DatabaseHelper extends SQLiteOpenHelper{
     @Override
     public void onOpen(SQLiteDatabase db) {
         super.onOpen(db);
-        if(!db.isReadOnly())
+        if (!db.isReadOnly())
             db.execSQL("PRAGMA foreign_keys=ON;");
     }
 
-    public Cursor createCursor (String query) {
+    public Cursor createCursor(String query) {
         SQLiteDatabase db = this.getReadableDatabase();
-        return db.rawQuery(query,null);
+        return db.rawQuery(query, null);
     }
 
-    public boolean initDataBase(){
-        String query = "SELECT name FROM topics";
+    public boolean initDataBase() {
+        String query = "SELECT count(*) FROM topics";
         Cursor cursor = this.createCursor(query);
-        int val = cursor.getCount();
+        int countRecord = 0;
+        if (cursor.moveToFirst()) {
+            countRecord = cursor.getInt(0);
+        }
         cursor.close();
-        return(val == 0);
+        return (countRecord == 0);
     }
 
     public void fillDataBaseFromUrl(String tableName, ContentValues newValues) {
@@ -84,12 +96,13 @@ public class DatabaseHelper extends SQLiteOpenHelper{
         try {
             db.insert(tableName, null, newValues);
             db.setTransactionSuccessful();
-        }finally {
+        } finally {
             db.endTransaction();
         }
 
     }
-    public void fillTablesFromHtml (ContentValues category, ArrayList<ContentValues> topics){
+
+    public void fillTablesFromHtml(ContentValues category, ArrayList<ContentValues> topics) {
         SQLiteDatabase db = this.getReadableDatabase();
         try {
             db.beginTransaction();
@@ -99,26 +112,28 @@ public class DatabaseHelper extends SQLiteOpenHelper{
                 db.insert(NEWS_TOPICS_TABLE, null, topic);
             }
             db.setTransactionSuccessful();
-        }finally {
+        } finally {
             db.endTransaction();
         }
     }
-    public String getStringFromCursor (Cursor cursor,int row,String col) {
+
+    public String getStringFromCursor(Cursor cursor, int row, String col) {
         String value;
-        if (cursor !=null){
+        if (cursor != null) {
             cursor.moveToPosition(row);
             value = cursor.getString(cursor.getColumnIndex(col));
-        }else {
+        } else {
             value = "empty cursor";
         }
         return value;
     }
-    public Cursor getGroupCursor () {
+
+    public Cursor getGroupCursor() {
         String query = "SELECT _id, name FROM category";
         return this.createCursor(query);
     }
 
-    public Cursor getTopicDataByCategory (int id) {
+    public Cursor getTopicDataByCategory(int id) {
         String query = "SELECT _id, name,link FROM topics WHERE category_id=" + String.valueOf(id);
         return this.createCursor(query);
     }
