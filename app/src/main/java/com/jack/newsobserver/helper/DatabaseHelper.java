@@ -23,22 +23,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public static final String LIST_PUBDATE_COLUMN = "pubdate";
     public static final String LIST_IMGURL_COLUMN = "imgurl";
     public static final String LIST_LINK_COLUMN = "link";
-    public static final String CATEGORY_TABLE_CREATE = "create table " + NEWS_CATEGORY_TABLE + "("
-            + ID_COLUMN + " integer primary key autoincrement, "
-            + NAME_COLUMN + " text not null" + ")";
-    public static final String TOPICS_TABLE_CREATE = "create table " + NEWS_TOPICS_TABLE + "("
-            + ID_COLUMN + " integer primary key autoincrement, "
-            + TOPICS_CATEGORY_ID_COLUMN + " integer not null "
-            + "REFERENCES " + NEWS_CATEGORY_TABLE + " (" + ID_COLUMN + "), "
-            + NAME_COLUMN + " text not null, "
-            + TOPICS_LINK_COLUMN + " text not null" + ")";
-    public static final String NEWSLIST_TABLE_CREATE = "create table " + NEWS_LIST_TABLE + "("
-            + ID_COLUMN + " integer primary key autoincrement, "
-            + LIST_TITLE_COLUMN + " text not null, "
-            + LIST_AUTHOR_COLUMN + " text not null, "
-            + LIST_PUBDATE_COLUMN + " text not null, "
-            + LIST_IMGURL_COLUMN + " text not null, "
-            + LIST_LINK_COLUMN + " text not null" + ")";
     private static DatabaseHelper sDatabaseHelper;
 
     private DatabaseHelper(Context context) {
@@ -54,12 +38,25 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(final SQLiteDatabase db) {
-        String sql = "create table " + NEWS_CATEGORY_TABLE + "("
+        String categorySql = "create table " + NEWS_CATEGORY_TABLE + "("
                 + ID_COLUMN + " integer primary key autoincrement, "
                 + NAME_COLUMN + " text not null" + ")";
-        db.execSQL(sql);
-        db.execSQL(TOPICS_TABLE_CREATE);
-        db.execSQL(NEWSLIST_TABLE_CREATE);
+        db.execSQL(categorySql);
+        String topicsSql = "create table " + NEWS_TOPICS_TABLE + "("
+                + ID_COLUMN + " integer primary key autoincrement, "
+                + TOPICS_CATEGORY_ID_COLUMN + " integer not null "
+                + "REFERENCES " + NEWS_CATEGORY_TABLE + " (" + ID_COLUMN + "), "
+                + NAME_COLUMN + " text not null, "
+                + TOPICS_LINK_COLUMN + " text not null" + ")";;
+        db.execSQL(topicsSql);
+        String newslistSql = "create table " + NEWS_LIST_TABLE + "("
+                + ID_COLUMN + " integer primary key autoincrement, "
+                + LIST_TITLE_COLUMN + " text not null, "
+                + LIST_AUTHOR_COLUMN + " text not null, "
+                + LIST_PUBDATE_COLUMN + " text not null, "
+                + LIST_IMGURL_COLUMN + " text not null, "
+                + LIST_LINK_COLUMN + " text not null" + ")"; ;
+        db.execSQL(newslistSql);
     }
 
     @Override
