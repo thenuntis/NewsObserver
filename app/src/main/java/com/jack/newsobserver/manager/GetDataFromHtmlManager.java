@@ -27,7 +27,7 @@ public class GetDataFromHtmlManager extends AsyncTask <String, Void, Void> {
     @Override
     protected Void doInBackground(String... params) {
         Document doc;
-        DatabaseHelper mDatabaseHelper = new DatabaseHelper(mContext);
+        DatabaseHelper mDatabaseHelper = DatabaseHelper.getInstance(mContext);
         ContentValues newCategoryNames = new ContentValues();
         try {
             doc  = Jsoup.connect(params[0]).get();

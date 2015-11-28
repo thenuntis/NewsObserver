@@ -85,7 +85,7 @@ public class MainActivity extends ActionBarActivity implements SiteListViewFragm
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setHomeButtonEnabled(true);
 
-        mDatabaseHelper = new DatabaseHelper(this);
+        mDatabaseHelper = DatabaseHelper.getInstance(this);
         if (mDatabaseHelper.initDataBase()){
             if (new TestNetwork(this).isNetworkAvailable()) {
                 GetDataFromHtmlManager mGetDataFromHtmlManager = new GetDataFromHtmlManager(this,this);
