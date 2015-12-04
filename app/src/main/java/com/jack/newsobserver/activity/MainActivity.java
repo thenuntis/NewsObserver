@@ -16,12 +16,16 @@ import android.widget.ExpandableListView;
 
 import com.jack.newsobserver.R;
 import com.jack.newsobserver.adapter.DrawerCursorAdapter;
+import com.jack.newsobserver.adapter.DrawerExpListAdapter;
 import com.jack.newsobserver.fragments.SiteListViewFragment;
 import com.jack.newsobserver.fragments.SiteWebViewFragment;
 import com.jack.newsobserver.helper.DatabaseHelper;
 import com.jack.newsobserver.helper.TestNetwork;
+import com.jack.newsobserver.helper.TopicsDatabaseHelper;
 import com.jack.newsobserver.manager.AlertDialogManager;
 import com.jack.newsobserver.manager.GetDataFromHtmlManager;
+import com.jack.newsobserver.models.NewsCategory;
+import com.jack.newsobserver.models.NewsTopic;
 
 
 public class MainActivity extends ActionBarActivity implements SiteListViewFragment.OnSelectedLinkListener,
@@ -31,6 +35,8 @@ public class MainActivity extends ActionBarActivity implements SiteListViewFragm
     private Cursor mCursor;
     private DrawerCursorAdapter mCursorAdapter;
     private DatabaseHelper mDatabaseHelper;
+    private TopicsDatabaseHelper mTopicsDatabaseHelper;
+    DrawerExpListAdapter mDrawerExpListAdapter;
     private static String subTitleString;
     private static String newsListUrl;
     private static final String SUBTITLE_KEY = "SUBTITLE";
@@ -45,11 +51,11 @@ public class MainActivity extends ActionBarActivity implements SiteListViewFragm
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        if (savedInstanceState != null){
+        if (null != savedInstanceState){
             subTitleString =savedInstanceState.getString(SUBTITLE_KEY);
             newsListUrl =savedInstanceState.getString(RECENT_URL_KEY);
         }else {
-            if (newsListUrl == null){
+            if (null == newsListUrl){
                 newsListUrl =DEFAULT_URL;
             }
         }
@@ -85,16 +91,39 @@ public class MainActivity extends ActionBarActivity implements SiteListViewFragm
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setHomeButtonEnabled(true);
 
+
         mDatabaseHelper = DatabaseHelper.getInstance(this);
-        if (mDatabaseHelper.initDataBase()){
-            if (new TestNetwork(this).isNetworkAvailable()) {
-                GetDataFromHtmlManager mGetDataFromHtmlManager = new GetDataFromHtmlManager(this,this);
-                mGetDataFromHtmlManager.execute(HTML_FEED_URL);
-            } else{
-                new AlertDialogManager().alertDialogShow(this);
-            }
+        if (new TestNetwork(this).isNetworkAvailable()) {
+            GetDataFromHtmlManager mGetDataFromHtmlManager = new GetDataFromHtmlManager(this,this);
+            mGetDataFromHtmlManager.execute(HTML_FEED_URL);
+        } else{
+            new AlertDialogManager().alertDialogShow(this);
         }
-        initDrawerExpList();
+        initDrawerExpandableList();
+    }
+
+    private DrawerExpListAdapter initDrawerExpandableList() {
+        ExpandableListView mExpandableListView = (ExpandableListView)findViewById(R.id.drawer_ltr_expListView);
+        if (null == mTopicsDatabaseHelper){
+            mTopicsDatabaseHelper=new TopicsDatabaseHelper(this);
+        }
+        mDrawerExpListAdapter = new DrawerExpListAdapter(this,
+                                mTopicsDatabaseHelper.getCategories(),
+                                mTopicsDatabaseHelper.getAllTopics());
+
+        mExpandableListView.setAdapter(mDrawerExpListAdapter);
+        if (null == subTitleString){
+            subTitleString = DEFAULT_SUBTITLE;
+        }/*else{
+            NewsCategory category = (NewsCategory) mDrawerExpListAdapter.getGroup(0);
+            NewsTopic topic = (NewsTopic) mDrawerExpListAdapter.getChild(0,0);
+            subTitleString = category.getCategoryName()+": "+
+                        topic.getTopicName();
+        }*/
+        getSupportActionBar().setSubtitle(subTitleString);
+        mExpandableListView.setOnChildClickListener(this);
+        setDrawerListGroupIndicator(mExpandableListView);
+        return mDrawerExpListAdapter;
     }
 
     @Override
@@ -124,29 +153,13 @@ public class MainActivity extends ActionBarActivity implements SiteListViewFragm
         return super.onCreateOptionsMenu(menu);
     }
 
-    public DrawerCursorAdapter initDrawerExpList () {
-        mCursor = mDatabaseHelper.getGroupCursor();
-        ExpandableListView mExpandableListView = (ExpandableListView)findViewById(R.id.drawer_ltr_expListView);
-        mCursorAdapter = new DrawerCursorAdapter(this,
-                mCursor,
-                R.layout.drawer_explist_group_item,
-                new String[]{"name"},
-                new int[] {R.id.textGroup},
-                R.layout.drawer_explist_child_item,
-                new String[]{"name"},
-                new int[] {R.id.textChild});
-        mExpandableListView.setAdapter(mCursorAdapter);
-        if (subTitleString == null){
-            if(mCursor.getCount()<=0){
-                subTitleString = DEFAULT_SUBTITLE;
-            }else{
-                subTitleString = mCursor.getString(1)
-                    + ": " + mCursorAdapter.getChild(0, 0).getString(1);
-            }
+    private void setDrawerListGroupIndicator(ExpandableListView v) {
+        if (android.os.Build.VERSION.SDK_INT <
+            android.os.Build.VERSION_CODES.JELLY_BEAN_MR2) {
+        v.setIndicatorBounds(v.getWidth()- v.getWidth()/5, v.getWidth()-10);
+        } else {
+        v.setIndicatorBoundsRelative(v.getWidth()- v.getWidth()/5, v.getWidth()-10);
         }
-        getSupportActionBar().setSubtitle(subTitleString);
-        mExpandableListView.setOnChildClickListener(this);
-        return mCursorAdapter;
     }
 
     @Override
@@ -188,11 +201,12 @@ public class MainActivity extends ActionBarActivity implements SiteListViewFragm
 
     @Override
     public boolean onChildClick(ExpandableListView parent, View v, int groupPosition, int childPosition, long id) {
-        String groupTitle = mCursor.getString(1);
-        Cursor childCursor = mCursorAdapter.getChild(groupPosition, childPosition);
-        String childTitle = childCursor.getString(1);
+        NewsCategory category = (NewsCategory) mDrawerExpListAdapter.getGroup(groupPosition);
+        NewsTopic topic = (NewsTopic) mDrawerExpListAdapter.getChild(groupPosition, childPosition);
+        String groupTitle = category.getCategoryName();
+        String childTitle = topic.getTopicName();
         subTitleString =groupTitle+": "+childTitle;
-        newsListUrl = childCursor.getString(2);
+        newsListUrl = topic.getTopicLink();
         getSupportActionBar().setSubtitle(subTitleString);
         FragmentManager manager = getFragmentManager();
         SiteListViewFragment siteListViewFragment = (SiteListViewFragment) manager.findFragmentByTag(SiteListViewFragment.TAG);
@@ -214,6 +228,6 @@ public class MainActivity extends ActionBarActivity implements SiteListViewFragm
 
     @Override
     public void callBack() {
-        initDrawerExpList().notifyDataSetChanged();
+        initDrawerExpandableList().notifyDataSetChanged();
     }
 }

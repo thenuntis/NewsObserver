@@ -23,7 +23,7 @@
     </FrameLayout>
     <ExpandableListView
         android:id="@+id/drawer_ltr_expListView"
-        android:layout_width="240dp"
+        android:layout_width="260dp"
         android:layout_height="match_parent"
         android:layout_gravity="start"
         android:groupIndicator="@drawable/group_indicator_img"

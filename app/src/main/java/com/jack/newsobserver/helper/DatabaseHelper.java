@@ -47,7 +47,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 + TOPICS_CATEGORY_ID_COLUMN + " integer not null "
                 + "REFERENCES " + NEWS_CATEGORY_TABLE + " (" + ID_COLUMN + "), "
                 + NAME_COLUMN + " text not null, "
-                + TOPICS_LINK_COLUMN + " text not null" + ")";;
+                + TOPICS_LINK_COLUMN + " text not null" + ")";
         db.execSQL(topicsSql);
         String newslistSql = "create table " + NEWS_LIST_TABLE + "("
                 + ID_COLUMN + " integer primary key autoincrement, "
@@ -55,7 +55,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 + LIST_AUTHOR_COLUMN + " text not null, "
                 + LIST_PUBDATE_COLUMN + " text not null, "
                 + LIST_IMGURL_COLUMN + " text not null, "
-                + LIST_LINK_COLUMN + " text not null" + ")"; ;
+                + LIST_LINK_COLUMN + " text not null" + ")";
         db.execSQL(newslistSql);
     }
 
@@ -72,7 +72,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
     public Cursor createCursor(String query) {
-        SQLiteDatabase db = this.getReadableDatabase();
+        SQLiteDatabase db = getReadableDatabase();
         return db.rawQuery(query, null);
     }
 
@@ -87,20 +87,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return (countRecord == 0);
     }
 
-    public void fillDataBaseFromUrl(String tableName, ContentValues newValues) {
-        SQLiteDatabase db = this.getReadableDatabase();
-        db.beginTransaction();
-        try {
-            db.insert(tableName, null, newValues);
-            db.setTransactionSuccessful();
-        } finally {
-            db.endTransaction();
-        }
-
-    }
-
     public void fillTablesFromHtml(ContentValues category, ArrayList<ContentValues> topics) {
-        SQLiteDatabase db = this.getReadableDatabase();
+        SQLiteDatabase db = getReadableDatabase();
         try {
             db.beginTransaction();
             long categoryId = db.insert(NEWS_CATEGORY_TABLE, null, category);
