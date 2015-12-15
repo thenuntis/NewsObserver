@@ -1,9 +1,11 @@
 package com.jack.newsobserver.models;
 
+import java.util.List;
+
 public class NewsCategory {
     private long categoryId;
     private String categoryName;
-//    public List<NewsTopic> categoryTopics;
+    public List<NewsTopic> categoryTopics;
 
 
     public long getCategoryId() {
@@ -16,6 +18,14 @@ public class NewsCategory {
 
     public String getCategoryName() {
         return categoryName;
+    }
+
+    public List<NewsTopic> getCategoryTopics() {
+        return categoryTopics;
+    }
+
+    public void setCategoryTopics(List<NewsTopic> categoryTopics) {
+        this.categoryTopics = categoryTopics;
     }
 
     public void setCategoryName(String categoryName) {

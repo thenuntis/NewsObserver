@@ -10,7 +10,7 @@ import android.widget.ProgressBar;
 
 import com.jack.newsobserver.ImageCache;
 import com.jack.newsobserver.R;
-import com.jack.newsobserver.adapter.SitesAdapter.ViewHolder;
+import com.jack.newsobserver.adapter.NewsListAdapter.ViewHolder;
 
 import java.io.IOException;
 import java.io.InputStream;

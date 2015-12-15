@@ -3,44 +3,45 @@ package com.jack.newsobserver.activity;
 
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
-import android.database.Cursor;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.ActionBarDrawerToggle;
 import android.support.v4.view.GravityCompat;
+import android.support.v4.view.MenuItemCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarActivity;
+import android.support.v7.widget.SearchView;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ExpandableListView;
 
 import com.jack.newsobserver.R;
-import com.jack.newsobserver.adapter.DrawerCursorAdapter;
 import com.jack.newsobserver.adapter.DrawerExpListAdapter;
 import com.jack.newsobserver.fragments.SiteListViewFragment;
 import com.jack.newsobserver.fragments.SiteWebViewFragment;
-import com.jack.newsobserver.helper.DatabaseHelper;
 import com.jack.newsobserver.helper.TestNetwork;
 import com.jack.newsobserver.helper.TopicsDatabaseHelper;
 import com.jack.newsobserver.manager.AlertDialogManager;
-import com.jack.newsobserver.manager.GetDataFromHtmlManager;
 import com.jack.newsobserver.models.NewsCategory;
 import com.jack.newsobserver.models.NewsTopic;
+import com.jack.newsobserver.parser.DataFromHtmlParser;
 
 
 public class MainActivity extends ActionBarActivity implements SiteListViewFragment.OnSelectedLinkListener,
-        ExpandableListView.OnChildClickListener, GetDataFromHtmlManager.OnFillFinished {
+        ExpandableListView.OnChildClickListener, DataFromHtmlParser.OnFillFinished, SearchView.OnQueryTextListener {
 
     private DrawerLayout mDrawerLayout;
-    private Cursor mCursor;
-    private DrawerCursorAdapter mCursorAdapter;
-    private DatabaseHelper mDatabaseHelper;
     private TopicsDatabaseHelper mTopicsDatabaseHelper;
-    DrawerExpListAdapter mDrawerExpListAdapter;
+    private DrawerExpListAdapter mDrawerExpListAdapter;
+    private ExpandableListView mExpandableListView;
     private static String subTitleString;
     private static String newsListUrl;
+    private static long newsLinkId;
     private static final String SUBTITLE_KEY = "SUBTITLE";
-    private static final String RECENT_URL_KEY = "URLKEY";
+    private static final String RECENT_LINK_URL_KEY = "LINKURLKEY";
+    private static final String RECENT_LINK_ID_KEY = "LINKIDKEY";
     private static final String HTML_FEED_URL = "http://www.cbc.ca/rss/";
     private static final String DEFAULT_URL = "http://www.cbc.ca/cmlink/rss-topstories";
     private static final String DEFAULT_SUBTITLE = "General News: Top Stories";
@@ -53,20 +54,22 @@ public class MainActivity extends ActionBarActivity implements SiteListViewFragm
 
         if (null != savedInstanceState){
             subTitleString =savedInstanceState.getString(SUBTITLE_KEY);
-            newsListUrl =savedInstanceState.getString(RECENT_URL_KEY);
+            newsListUrl =savedInstanceState.getString(RECENT_LINK_URL_KEY);
+            newsLinkId = savedInstanceState.getLong(RECENT_LINK_ID_KEY);
         }else {
             if (null == newsListUrl){
                 newsListUrl =DEFAULT_URL;
+                newsLinkId = 1;
             }
         }
 
         FragmentManager manager = getFragmentManager();
 
-        if (manager.findFragmentByTag(SiteListViewFragment.TAG)== null ) {
+        if (null == manager.findFragmentByTag(SiteListViewFragment.TAG)) {
             FragmentTransaction transaction = manager.beginTransaction();
             SiteListViewFragment siteListViewFragment = new SiteListViewFragment();
-            transaction.add(R.id.list_view_fragment, siteListViewFragment,SiteListViewFragment.TAG);
-            siteListViewFragment.setListViewUrl(newsListUrl);
+            transaction.add(R.id.list_view_fragment, siteListViewFragment, SiteListViewFragment.TAG);
+            siteListViewFragment.setListViewUrl(newsListUrl,newsLinkId);
             transaction.commit();
         }
 
@@ -91,74 +94,90 @@ public class MainActivity extends ActionBarActivity implements SiteListViewFragm
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setHomeButtonEnabled(true);
 
-
-        mDatabaseHelper = DatabaseHelper.getInstance(this);
-        if (new TestNetwork(this).isNetworkAvailable()) {
-            GetDataFromHtmlManager mGetDataFromHtmlManager = new GetDataFromHtmlManager(this,this);
-            mGetDataFromHtmlManager.execute(HTML_FEED_URL);
-        } else{
-            new AlertDialogManager().alertDialogShow(this);
+        if (null == savedInstanceState){
+            if (new TestNetwork(this).isNetworkAvailable()) {
+                DataFromHtmlParser mDataFromHtmlParser = new DataFromHtmlParser(this,this);
+                mDataFromHtmlParser.execute(HTML_FEED_URL);
+            } else{
+                new AlertDialogManager().alertDialogShow(this);
+            }
+        }else {
+            initDrawerExpandableList();
         }
-        initDrawerExpandableList();
     }
 
     private DrawerExpListAdapter initDrawerExpandableList() {
-        ExpandableListView mExpandableListView = (ExpandableListView)findViewById(R.id.drawer_ltr_expListView);
+        mExpandableListView = (ExpandableListView)findViewById(R.id.drawer_ltr_expListView);
+        setDrawerListGroupIndicator();
+        mExpandableListView.setOnChildClickListener(this);
         if (null == mTopicsDatabaseHelper){
             mTopicsDatabaseHelper=new TopicsDatabaseHelper(this);
         }
         mDrawerExpListAdapter = new DrawerExpListAdapter(this,
-                                mTopicsDatabaseHelper.getCategories(),
-                                mTopicsDatabaseHelper.getAllTopics());
-
+                                mTopicsDatabaseHelper.getCategoriesWithRelatedTopics());
         mExpandableListView.setAdapter(mDrawerExpListAdapter);
         if (null == subTitleString){
             subTitleString = DEFAULT_SUBTITLE;
-        }/*else{
-            NewsCategory category = (NewsCategory) mDrawerExpListAdapter.getGroup(0);
-            NewsTopic topic = (NewsTopic) mDrawerExpListAdapter.getChild(0,0);
-            subTitleString = category.getCategoryName()+": "+
-                        topic.getTopicName();
-        }*/
+        }
         getSupportActionBar().setSubtitle(subTitleString);
-        mExpandableListView.setOnChildClickListener(this);
-        setDrawerListGroupIndicator(mExpandableListView);
         return mDrawerExpListAdapter;
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()){
-            case android.R.id.home:
+            case R.id.home:
                 if (mDrawerLayout.isDrawerOpen(GravityCompat.START)){
                     mDrawerLayout.closeDrawer(GravityCompat.START);
                 }else {
                     mDrawerLayout.openDrawer(GravityCompat.START);
                 }
                 return true;
+            case R.id.action_search:
+                return true;
             default:
                 return super.onOptionsItemSelected(item);
         }
+    }
+    public boolean onQueryTextChange(String text_new) {
+        Log.d("QUERY", "New text is " + text_new);
+        return true;
+    }
+
+    public boolean onQueryTextSubmit(String text) {
+        Log.d("QUERY", "Search text is " + text);
+        return true;
     }
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putString(SUBTITLE_KEY, subTitleString);
-        outState.putString(RECENT_URL_KEY, newsListUrl);
+        outState.putString(RECENT_LINK_URL_KEY, newsListUrl);
+        outState.putLong(RECENT_LINK_ID_KEY, newsLinkId);
+
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_main, menu);
+        MenuItem searchItem = menu.findItem(R.id.action_search);
+        SearchView searchView = (SearchView) MenuItemCompat.getActionView(searchItem);
+        searchView.setQueryHint("Search");
+        searchView.setOnQueryTextListener(this);
+
         return super.onCreateOptionsMenu(menu);
+
     }
 
-    private void setDrawerListGroupIndicator(ExpandableListView v) {
-        if (android.os.Build.VERSION.SDK_INT <
-            android.os.Build.VERSION_CODES.JELLY_BEAN_MR2) {
-        v.setIndicatorBounds(v.getWidth()- v.getWidth()/5, v.getWidth()-10);
+    private void setDrawerListGroupIndicator() {
+        float density = this.getResources().getDisplayMetrics().density;
+        int widthExpList = mExpandableListView.getLayoutParams().width;
+        int pxEnd = (int) (widthExpList - (10*density));
+        int pxStart = (int) (widthExpList - (60*density));
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN_MR2) {
+            mExpandableListView.setIndicatorBounds(pxStart,pxEnd);
         } else {
-        v.setIndicatorBoundsRelative(v.getWidth()- v.getWidth()/5, v.getWidth()-10);
+            mExpandableListView.setIndicatorBoundsRelative(pxStart,pxEnd);
         }
     }
 
@@ -207,6 +226,7 @@ public class MainActivity extends ActionBarActivity implements SiteListViewFragm
         String childTitle = topic.getTopicName();
         subTitleString =groupTitle+": "+childTitle;
         newsListUrl = topic.getTopicLink();
+        newsLinkId = topic.getTopicId();
         getSupportActionBar().setSubtitle(subTitleString);
         FragmentManager manager = getFragmentManager();
         SiteListViewFragment siteListViewFragment = (SiteListViewFragment) manager.findFragmentByTag(SiteListViewFragment.TAG);
@@ -216,10 +236,10 @@ public class MainActivity extends ActionBarActivity implements SiteListViewFragm
             FragmentTransaction transaction = manager.beginTransaction();
             transaction.replace(R.id.list_view_fragment, siteListViewFragment, SiteListViewFragment.TAG);
             transaction.addToBackStack(subTitleString);
-            siteListViewFragment.setListViewUrl(newsListUrl);
+            siteListViewFragment.setListViewUrl(newsListUrl,newsLinkId);
             transaction.commit();
         }else {
-            siteListViewFragment.setListViewUrl(newsListUrl);
+            siteListViewFragment.setListViewUrl(newsListUrl,newsLinkId);
             siteListViewFragment.onRefresh();
         }
         mDrawerLayout.closeDrawer(GravityCompat.START);

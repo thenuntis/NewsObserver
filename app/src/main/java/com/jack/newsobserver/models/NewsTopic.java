@@ -2,7 +2,7 @@ package com.jack.newsobserver.models;
 
 public class NewsTopic {
     private long topicId;
-    private NewsCategory topicCategory;
+    private long topicCategoryId;
     private String topicName;
     private String topicLink;
 
@@ -14,12 +14,12 @@ public class NewsTopic {
         this.topicId = topicId;
     }
 
-    public NewsCategory getTopicCategory() {
-        return topicCategory;
+    public long getTopicCategory() {
+        return topicCategoryId;
     }
 
-    public void setTopicCategory(NewsCategory topicCategory) {
-        this.topicCategory = topicCategory;
+    public void setTopicCategory(long topicCategory) {
+        this.topicCategoryId = topicCategory;
     }
 
     public String getTopicName() {

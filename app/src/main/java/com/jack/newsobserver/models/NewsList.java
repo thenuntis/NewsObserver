@@ -1,9 +1,69 @@
 package com.jack.newsobserver.models;
 
 public class NewsList {
-    public String title;
-    public String author;
-    public String pubdate;
-    public String imgurl;
-    public String link;
+
+    private long storyId;
+    private long parentTopicId;
+    private String storyTitle;
+    private String storyLink;
+    private String storyAuthor;
+    private String storyPubdate;
+    private String imgUrl;
+
+    public long getStoryId() {
+        return storyId;
+    }
+
+    public void setStoryId(long storyId) {
+        this.storyId = storyId;
+    }
+
+    public long getParentTopicId() {
+        return parentTopicId;
+    }
+
+    public void setParentTopicId(long parentTopicId) {
+        this.parentTopicId = parentTopicId;
+    }
+
+    public String getStoryTitle() {
+        return storyTitle;
+    }
+    public void setStoryTitle(String storyTitle) {
+        this.storyTitle = storyTitle;
+    }
+
+    public String getStoryLink() {
+        return storyLink;
+    }
+    public void setStoryLink(String storyLink) {
+        this.storyLink = storyLink;
+    }
+
+    public String getStoryAuthor() {
+        return storyAuthor;
+    }
+    public void setStoryAuthor(String storyAuthor) {
+        this.storyAuthor = storyAuthor;
+    }
+
+    public String getStoryPubdate() {
+        return storyPubdate;
+    }
+    public void setStoryPubdate(String storyPubdate) {
+        this.storyPubdate = storyPubdate;
+    }
+
+    public String getImgUrl() {
+        return imgUrl;
+    }
+    public void setImgUrl(String imgUrl) {
+        this.imgUrl = imgUrl;
+    }
+
+    @Override
+    public String toString() {
+        return "NewsList [storyTitle=" + storyTitle + ", storyLink=" + storyLink + ", storyAuthor="
+                + storyAuthor + ", storyPubdate=" + storyPubdate + ", imgUrl=" + imgUrl + "]";
+    }
 }

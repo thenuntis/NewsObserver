@@ -14,54 +14,54 @@ import java.util.List;
 
 public class TopicsDatabaseHelper {
     Context ctx;
-    DatabaseHelper db = DatabaseHelper.getInstance(ctx);
+    DatabaseHelper db ;
 
     public TopicsDatabaseHelper(Context context) {
         this.ctx = context;
+        this.db = DatabaseHelper.getInstance(ctx);
     }
 
-    public void addTopic (NewsTopic topic){
+    public void addCategoryAndRelatedTopics(NewsCategory category){
         SQLiteDatabase helper = db.getReadableDatabase();
         helper.beginTransaction();
         try {
-
-            long categoryId = addOrUpdateCategory(topic.getTopicCategory());
-
-            ContentValues values = new ContentValues();
-            values.put(DatabaseHelper.TOPICS_CATEGORY_ID_COLUMN, categoryId);
-            values.put(DatabaseHelper.NAME_COLUMN, topic.getTopicName());
-            values.put(DatabaseHelper.TOPICS_LINK_COLUMN, topic.getTopicLink());
-            int rows = helper.update(DatabaseHelper.NEWS_TOPICS_TABLE,values,
-                    DatabaseHelper.TOPICS_LINK_COLUMN + "= ?",new String[]{topic.getTopicLink()});
-            if (rows != 1){
-                helper.insertOrThrow(DatabaseHelper.NEWS_TOPICS_TABLE, null, values);
+            long categoryId = addOrUpdateCategory(category.getCategoryName());
+            List<NewsTopic> topicsList = category.getCategoryTopics();
+            for (NewsTopic topic:topicsList) {
+                ContentValues values = new ContentValues();
+                values.put(DatabaseHelper.TOPICS_CATEGORY_ID_COLUMN, categoryId);
+                values.put(DatabaseHelper.NAME_COLUMN, topic.getTopicName());
+                values.put(DatabaseHelper.TOPICS_LINK_COLUMN, topic.getTopicLink());
+                int rows = helper.update(DatabaseHelper.NEWS_TOPICS_TABLE,values,
+                        DatabaseHelper.TOPICS_LINK_COLUMN + "= ?",new String[]{topic.getTopicLink()});
+                if (rows != 1){
+                    helper.insertOrThrow(DatabaseHelper.NEWS_TOPICS_TABLE, null, values);
+                }
             }
             helper.setTransactionSuccessful();
         } catch (Exception e) {
             Log.d("TopicDatabaseHelper", "Error while trying to add topic to database");
         } finally {
-            helper.endTransaction();
+                helper.endTransaction();
         }
     }
 
-    private long addOrUpdateCategory(NewsCategory category) {
+    private long addOrUpdateCategory(String category) {
         SQLiteDatabase helper = db.getReadableDatabase();
         long categoryId = -1;
-
         helper.beginTransaction();
         try {
             ContentValues values = new ContentValues();
-            values.put(DatabaseHelper.NAME_COLUMN, category.getCategoryName());
-
+            values.put(DatabaseHelper.NAME_COLUMN, category);
             int rows = helper.update(DatabaseHelper.NEWS_CATEGORY_TABLE, values,
-                        DatabaseHelper.NAME_COLUMN + "= ?", new String[]{category.getCategoryName()});
+                    DatabaseHelper.NAME_COLUMN + "= ?", new String[]{category});
             if (rows == 1) {
                 String categorySelectQuery = String.format("SELECT %s FROM %s WHERE %s = ?",
                                                             DatabaseHelper.ID_COLUMN,
                                                             DatabaseHelper.NEWS_CATEGORY_TABLE,
                                                             DatabaseHelper.NAME_COLUMN);
                 Cursor cursor = helper.rawQuery(categorySelectQuery,
-                                        new String[]{category.getCategoryName()});
+                                        new String[]{category});
                 try {
                     if (cursor.moveToFirst()) {
                         categoryId = cursor.getInt(0);
@@ -83,6 +83,13 @@ public class TopicsDatabaseHelper {
         }
         return categoryId;
     }
+    public List<NewsCategory> getCategoriesWithRelatedTopics(){
+        List<NewsCategory> categoriesList = getCategories();
+        for(NewsCategory category:categoriesList){
+            category.setCategoryTopics(getTopicsByCategory(category));
+        }
+        return categoriesList;
+    }
 
     public List<NewsCategory> getCategories(){
         List<NewsCategory> categoriesList = new ArrayList<>();
@@ -100,25 +107,19 @@ public class TopicsDatabaseHelper {
 
     public List<NewsTopic> getTopicsByCategory(NewsCategory category){
         List<NewsTopic> topicsList = new ArrayList<>();
-        String query = "SELECT * FROM topics WHERE category_id = " + category.getCategoryId();
+        String query = "SELECT * FROM "+DatabaseHelper.NEWS_TOPICS_TABLE
+                + " WHERE " + DatabaseHelper.TOPICS_CATEGORY_ID_COLUMN
+                + " = " + category.getCategoryId();
         Cursor cursor = db.createCursor(query);
         while (cursor.moveToNext()){
             NewsTopic topic = new NewsTopic();
             topic.setTopicId(cursor.getInt(0));
-            topic.setTopicCategory(category);
+            topic.setTopicCategory(category.getCategoryId());
             topic.setTopicName(cursor.getString(cursor.getColumnIndex(DatabaseHelper.NAME_COLUMN)));
             topic.setTopicLink(cursor.getString(cursor.getColumnIndex(DatabaseHelper.TOPICS_LINK_COLUMN)));
             topicsList.add(topic);
         }
         cursor.close();
-        return topicsList;
-    }
-    public ArrayList<List<NewsTopic>> getAllTopics (){
-        ArrayList<List<NewsTopic>> topicsList = new ArrayList<>();
-        List<NewsCategory> categoryList = getCategories();
-        for(NewsCategory category:categoryList){
-            topicsList.add(getTopicsByCategory(category));
-        }
         return topicsList;
     }
 }

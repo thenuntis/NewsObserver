@@ -1,12 +1,9 @@
 package com.jack.newsobserver.helper;
 
-import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-
-import java.util.ArrayList;
 
 public class DatabaseHelper extends SQLiteOpenHelper {
     public static final String DATABASE_NAME = "newsobserverdb.db";
@@ -18,6 +15,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public static final String ID_COLUMN = "_id";
     public static final String NAME_COLUMN = "name";
     public static final String NEWS_LIST_TABLE = "newslist";
+    public static final String LIST_TOPIC_ID_COLUMN = "topic_id";
     public static final String LIST_TITLE_COLUMN = "title";
     public static final String LIST_AUTHOR_COLUMN = "author";
     public static final String LIST_PUBDATE_COLUMN = "pubdate";
@@ -51,9 +49,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.execSQL(topicsSql);
         String newslistSql = "create table " + NEWS_LIST_TABLE + "("
                 + ID_COLUMN + " integer primary key autoincrement, "
+                + LIST_TOPIC_ID_COLUMN + " integer not null "
+                + "REFERENCES " + NEWS_TOPICS_TABLE + " ("+ ID_COLUMN + "), "
                 + LIST_TITLE_COLUMN + " text not null, "
                 + LIST_AUTHOR_COLUMN + " text not null, "
-                + LIST_PUBDATE_COLUMN + " text not null, "
+                + LIST_PUBDATE_COLUMN + " integer not null, "
                 + LIST_IMGURL_COLUMN + " text not null, "
                 + LIST_LINK_COLUMN + " text not null" + ")";
         db.execSQL(newslistSql);
@@ -74,53 +74,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public Cursor createCursor(String query) {
         SQLiteDatabase db = getReadableDatabase();
         return db.rawQuery(query, null);
-    }
-
-    public boolean initDataBase() {
-        String query = "SELECT count(*) FROM topics";
-        Cursor cursor = this.createCursor(query);
-        int countRecord = 0;
-        if (cursor.moveToFirst()) {
-            countRecord = cursor.getInt(0);
-        }
-        cursor.close();
-        return (countRecord == 0);
-    }
-
-    public void fillTablesFromHtml(ContentValues category, ArrayList<ContentValues> topics) {
-        SQLiteDatabase db = getReadableDatabase();
-        try {
-            db.beginTransaction();
-            long categoryId = db.insert(NEWS_CATEGORY_TABLE, null, category);
-            for (ContentValues topic : topics) {
-                topic.put(TOPICS_CATEGORY_ID_COLUMN, categoryId);
-                db.insert(NEWS_TOPICS_TABLE, null, topic);
-            }
-            db.setTransactionSuccessful();
-        } finally {
-            db.endTransaction();
-        }
-    }
-
-    public String getStringFromCursor(Cursor cursor, int row, String col) {
-        String value;
-        if (cursor != null) {
-            cursor.moveToPosition(row);
-            value = cursor.getString(cursor.getColumnIndex(col));
-        } else {
-            value = "empty cursor";
-        }
-        return value;
-    }
-
-    public Cursor getGroupCursor() {
-        String query = "SELECT _id, name FROM category";
-        return this.createCursor(query);
-    }
-
-    public Cursor getTopicDataByCategory(int id) {
-        String query = "SELECT _id, name,link FROM topics WHERE category_id=" + String.valueOf(id);
-        return this.createCursor(query);
     }
 
 }

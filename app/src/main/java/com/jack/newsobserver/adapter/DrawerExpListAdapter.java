@@ -11,20 +11,19 @@ import com.jack.newsobserver.R;
 import com.jack.newsobserver.models.NewsCategory;
 import com.jack.newsobserver.models.NewsTopic;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class DrawerExpListAdapter extends BaseExpandableListAdapter {
 
     private List<NewsCategory> mGroups;
-    private ArrayList<List<NewsTopic>> mChild;
+//    private ArrayList<List<NewsTopic>> mChild;
     private Context mContext;
     private ViewHolder viewHolder;
 
-    public DrawerExpListAdapter(Context context, List<NewsCategory> categories,ArrayList<List<NewsTopic>> topics) {
+    public DrawerExpListAdapter(Context context, List<NewsCategory> categories) {
         this.mContext=context;
         this.mGroups = categories;
-        this.mChild = topics;
+//        this.mChild = topics;
     }
 
     @Override
@@ -34,7 +33,7 @@ public class DrawerExpListAdapter extends BaseExpandableListAdapter {
 
     @Override
     public int getChildrenCount(int groupPosition) {
-        return mChild.get(groupPosition).size();
+        return mGroups.get(groupPosition).getCategoryTopics().size();
     }
 
     @Override
@@ -44,7 +43,7 @@ public class DrawerExpListAdapter extends BaseExpandableListAdapter {
 
     @Override
     public Object getChild(int groupPosition, int childPosition) {
-        return mChild.get(groupPosition).get(childPosition);
+        return mGroups.get(groupPosition).getCategoryTopics().get(childPosition);
     }
 
     @Override
@@ -79,8 +78,9 @@ public class DrawerExpListAdapter extends BaseExpandableListAdapter {
 
     @Override
     public View getChildView(int groupPosition, int childPosition, boolean isLastChild, View convertView, ViewGroup parent) {
-        List<NewsTopic> child = mChild.get(groupPosition);
-        NewsTopic topic = child.get(childPosition);
+//        List<NewsTopic> child = mChild.get(groupPosition);
+//        NewsTopic topic = child.get(childPosition);
+        NewsTopic topic = (NewsTopic) getChild(groupPosition, childPosition);
         if (null == convertView){
             LayoutInflater inflater = (LayoutInflater) mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
             convertView = inflater.inflate(R.layout.drawer_explist_child_item,parent,false);

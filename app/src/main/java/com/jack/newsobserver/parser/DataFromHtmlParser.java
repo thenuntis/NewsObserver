@@ -1,8 +1,9 @@
-package com.jack.newsobserver.manager;
+package com.jack.newsobserver.parser;
 
 import android.content.Context;
 import android.os.AsyncTask;
 
+import com.jack.newsobserver.helper.DatabaseHelper;
 import com.jack.newsobserver.helper.TopicsDatabaseHelper;
 import com.jack.newsobserver.models.NewsCategory;
 import com.jack.newsobserver.models.NewsTopic;
@@ -13,8 +14,9 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.io.IOException;
+import java.util.ArrayList;
 
-public class GetDataFromHtmlManager extends AsyncTask <String, Void, Void> {
+public class DataFromHtmlParser extends AsyncTask <String, Void, Void> {
     Context mContext;
     private static final String MAIN_HTML_ELEMENT = "table.feeds";
     private static final String MAIN_HTML_TITLE = "td.title";
@@ -25,7 +27,7 @@ public class GetDataFromHtmlManager extends AsyncTask <String, Void, Void> {
     private OnFillFinished mCallBack ;
 
 
-    public GetDataFromHtmlManager(Context context, OnFillFinished callBack) {
+    public DataFromHtmlParser(Context context, OnFillFinished callBack) {
         this.mContext = context;
         this.mCallBack=callBack;
     }
@@ -33,8 +35,7 @@ public class GetDataFromHtmlManager extends AsyncTask <String, Void, Void> {
     @Override
     protected Void doInBackground(String... params) {
         Document doc;
-//        DatabaseHelper mDatabaseHelper = DatabaseHelper.getInstance(mContext);
-//        ContentValues newCategoryNames = new ContentValues();
+        DatabaseHelper.getInstance(mContext);
         TopicsDatabaseHelper topicsDatabaseHelper = new TopicsDatabaseHelper(mContext);
         try {
             doc  = Jsoup.connect(params[0]).get();
@@ -43,26 +44,20 @@ public class GetDataFromHtmlManager extends AsyncTask <String, Void, Void> {
                 Element categoryElement = doc.select(MAIN_HTML_ELEMENT).get(categories.indexOf(category));
                 Document bodyOfCategory = Jsoup.parse(String.valueOf(categoryElement));
                 String categoryTitle = bodyOfCategory.select(MAIN_HTML_TITLE).first().text();
-//                newCategoryNames.put(DatabaseHelper.NAME_COLUMN, categoryTitle);
                 NewsCategory mCategory = new NewsCategory();
                 mCategory.setCategoryName(categoryTitle);
                 Elements topics = bodyOfCategory.select(MAIN_HTML_CONTENT);
-/*                ArrayList<ContentValues> newTopicsList = new ArrayList<>();*/
+                ArrayList<NewsTopic> newTopicsList = new ArrayList<>();
                 for (Element topic:topics){
                     NewsTopic mTopic= new NewsTopic();
-//                    ContentValues newTopicsValues = new ContentValues();
                     Document bodyOfTopic = Jsoup.parse(String.valueOf(topic));
                     Elements topicContent = bodyOfTopic.select(URL_CONTENT_TEXT);
-                    mTopic.setTopicCategory(mCategory);
                     mTopic.setTopicName(topicContent.text());
                     mTopic.setTopicLink(topicContent.attr(URL_CONTENT_LINK));
-                    topicsDatabaseHelper.addTopic(mTopic);
-/*
-                    newTopicsValues.put(DatabaseHelper.NAME_COLUMN, topicContent.text());
-                    newTopicsValues.put(DatabaseHelper.TOPICS_LINK_COLUMN, topicContent.attr(URL_CONTENT_LINK));
-                    newTopicsList.add(newTopicsValues);*/
+                    newTopicsList.add(mTopic);
                 }
-//                mDatabaseHelper.fillTablesFromHtml(newCategoryNames, newTopicsList);
+                mCategory.setCategoryTopics(newTopicsList);
+                topicsDatabaseHelper.addCategoryAndRelatedTopics(mCategory);
             }
         } catch (IOException e) {
             e.printStackTrace();

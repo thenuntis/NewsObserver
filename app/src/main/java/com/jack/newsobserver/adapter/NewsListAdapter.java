@@ -10,25 +10,24 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.jack.newsobserver.R;
-import com.jack.newsobserver.StoriesDigest;
+import com.jack.newsobserver.models.NewsList;
 import com.jack.newsobserver.manager.GetImageTaskManager;
 
 import java.util.List;
 
 
-public class SitesAdapter extends ArrayAdapter<StoriesDigest> {
+public class NewsListAdapter extends ArrayAdapter<NewsList> {
     Context context;
-    private List<StoriesDigest> mSites;
+    private List<NewsList> mSites;
 
-    public void setSites(List<StoriesDigest> sites) {
-        mSites = sites;
-        notifyDataSetChanged();
+    public NewsListAdapter(Context ctx) {
+        super(ctx, R.layout.site_list_item);
+        this.context=super.getContext();
     }
 
-    public SitesAdapter(Context ctx, List<StoriesDigest> sites) {
-        super(ctx, R.layout.site_list_item);
+    public void setSites(List<NewsList> sites) {
         mSites = sites;
-        this.context=super.getContext();
+        notifyDataSetChanged();
     }
 
     @Override
@@ -41,7 +40,7 @@ public class SitesAdapter extends ArrayAdapter<StoriesDigest> {
     }
 
     @Override
-    public StoriesDigest getItem(int position) {
+    public NewsList getItem(int position) {
         return mSites.get(position);
     }
 
