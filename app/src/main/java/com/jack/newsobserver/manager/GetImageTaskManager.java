@@ -8,7 +8,7 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 
-import com.jack.newsobserver.ImageCache;
+import com.jack.newsobserver.util.ImageCache;
 import com.jack.newsobserver.R;
 import com.jack.newsobserver.adapter.NewsListAdapter.ViewHolder;
 

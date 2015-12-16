@@ -10,23 +10,28 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.jack.newsobserver.R;
-import com.jack.newsobserver.models.NewsList;
 import com.jack.newsobserver.manager.GetImageTaskManager;
+import com.jack.newsobserver.models.NewsList;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 
 public class NewsListAdapter extends ArrayAdapter<NewsList> {
     Context context;
     private List<NewsList> mSites;
+    private List<NewsList> mFilteredSites = new ArrayList<>();
 
     public NewsListAdapter(Context ctx) {
-        super(ctx, R.layout.site_list_item);
+        super(ctx, R.layout.main_listview_item);
         this.context=super.getContext();
     }
 
     public void setSites(List<NewsList> sites) {
         mSites = sites;
+        mFilteredSites.clear();
+        mFilteredSites.addAll(sites);
         notifyDataSetChanged();
     }
 
@@ -52,7 +57,7 @@ public class NewsListAdapter extends ArrayAdapter<NewsList> {
 
         if (row == null) {
             LayoutInflater inflater = (LayoutInflater) parent.getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-            row = inflater.inflate(R.layout.site_list_item, null);
+            row = inflater.inflate(R.layout.main_listview_item, null);
             viewHolder = new ViewHolder(row);
             row.setTag(viewHolder);
         } else {
@@ -83,4 +88,19 @@ public class NewsListAdapter extends ArrayAdapter<NewsList> {
         }
     }
 
+    public void filter(String charText) {
+        charText = charText.toLowerCase(Locale.getDefault());
+        mSites.clear();
+        if (charText.length() == 0) {
+            mSites.addAll(mFilteredSites);
+        }
+        else{
+            for (NewsList list : mFilteredSites) {
+                if (list.getStoryTitle().toLowerCase(Locale.getDefault()).contains(charText)){
+                    mSites.add(list);
+                }
+            }
+        }
+        notifyDataSetChanged();
+    }
 }

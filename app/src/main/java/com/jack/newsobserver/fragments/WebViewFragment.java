@@ -2,7 +2,12 @@ package com.jack.newsobserver.fragments;
 
 import android.app.Fragment;
 import android.os.Bundle;
+import android.support.v4.view.GravityCompat;
+import android.support.v4.widget.DrawerLayout;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.WebView;
@@ -12,22 +17,23 @@ import android.widget.ProgressBar;
 import com.jack.newsobserver.R;
 
 
-public class SiteWebViewFragment extends Fragment {
+public class WebViewFragment extends Fragment {
 
-    public static final String TAG = "SiteWebViewFragmentTag";
+    public static final String TAG = "WebViewFragmentTag";
     private String mSiteUrl;
     private WebView mWebView;
     private Bundle mWebViewBundle;
     private ProgressBar mWebViewBar;
     private boolean mNewUrlFlag = true;
 
-    public SiteWebViewFragment(){
+    public WebViewFragment(){
     }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setRetainInstance(true);
+        setHasOptionsMenu(true);
     }
 
     @Override
@@ -42,8 +48,31 @@ public class SiteWebViewFragment extends Fragment {
     }
 
     @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        DrawerLayout drawerLayout = (DrawerLayout) getActivity().findViewById(R.id.main_drawer_layout);
+        switch (item.getItemId()){
+            case android.R.id.home:
+                if (drawerLayout.isDrawerOpen(GravityCompat.START)){
+                    drawerLayout.closeDrawer(GravityCompat.START);
+                }else {
+                    drawerLayout.openDrawer(GravityCompat.START);
+                }
+                return true;
+            case R.id.action_search:
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        super.onCreateOptionsMenu(menu, inflater);
+    }
+
+    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        final View rootView = inflater.inflate(R.layout.site_webview_fragment,container,false);
+        final View rootView = inflater.inflate(R.layout.main_webview_fragment,container,false);
         mWebView = (WebView) rootView.findViewById(R.id.webView);
         mWebView.getSettings().setJavaScriptEnabled(true);
         if (mNewUrlFlag){

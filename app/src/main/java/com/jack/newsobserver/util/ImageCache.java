@@ -1,4 +1,4 @@
-package com.jack.newsobserver;
+package com.jack.newsobserver.util;
 
 import android.graphics.Bitmap;
 import android.support.v4.util.LruCache;

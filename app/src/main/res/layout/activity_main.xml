@@ -8,17 +8,20 @@
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:id="@+id/list_view_fragment"
-        android:name="com.jack.newsobserver.fragments.SiteListViewFragment"/>
-    <ExpandableListView
-        android:id="@+id/drawer_ltr_expListView"
+        android:id="@+id/list_view_fragment"/>
+    <FrameLayout
+        android:id="@+id/drawer"
         android:layout_width="@dimen/navigation_drawer_width"
         android:layout_height="match_parent"
         android:layout_gravity="start"
-        android:groupIndicator="@drawable/group_indicator_img"
-        android:choiceMode="singleChoice"
-        android:divider="@android:color/transparent"
-        android:dividerHeight="1dp"
-        android:background="#FFF"/>
+        android:background="#FFF">
+        <fragment
+            android:id="@+id/drawer_fragment"
+            android:name="com.jack.newsobserver.fragments.DrawerExpListFragment"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            tools:layout="@layout/drawer_explist_fragment" />
+    </FrameLayout>
+
 </android.support.v4.widget.DrawerLayout>
 

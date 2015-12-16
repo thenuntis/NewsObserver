@@ -16,14 +16,12 @@ import java.util.List;
 public class DrawerExpListAdapter extends BaseExpandableListAdapter {
 
     private List<NewsCategory> mGroups;
-//    private ArrayList<List<NewsTopic>> mChild;
     private Context mContext;
     private ViewHolder viewHolder;
 
     public DrawerExpListAdapter(Context context, List<NewsCategory> categories) {
         this.mContext=context;
         this.mGroups = categories;
-//        this.mChild = topics;
     }
 
     @Override
@@ -78,8 +76,6 @@ public class DrawerExpListAdapter extends BaseExpandableListAdapter {
 
     @Override
     public View getChildView(int groupPosition, int childPosition, boolean isLastChild, View convertView, ViewGroup parent) {
-//        List<NewsTopic> child = mChild.get(groupPosition);
-//        NewsTopic topic = child.get(childPosition);
         NewsTopic topic = (NewsTopic) getChild(groupPosition, childPosition);
         if (null == convertView){
             LayoutInflater inflater = (LayoutInflater) mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);

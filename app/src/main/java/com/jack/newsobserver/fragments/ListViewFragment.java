@@ -2,53 +2,60 @@ package com.jack.newsobserver.fragments;
 
 import android.app.AlertDialog.Builder;
 import android.app.Fragment;
-import android.app.ProgressDialog;
+import android.app.SearchManager;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.v4.view.MenuItemCompat;
 import android.support.v4.widget.SwipeRefreshLayout;
+import android.support.v7.widget.SearchView;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ListView;
 
-import com.jack.newsobserver.ImageCache;
 import com.jack.newsobserver.R;
 import com.jack.newsobserver.adapter.NewsListAdapter;
 import com.jack.newsobserver.helper.NewsListDatabaseHelper;
 import com.jack.newsobserver.helper.TestNetwork;
 import com.jack.newsobserver.models.NewsList;
 import com.jack.newsobserver.parser.NewsListFromXmlParser;
+import com.jack.newsobserver.util.ActionSearchUtil;
+import com.jack.newsobserver.util.ImageCache;
 
 import java.util.List;
 
 
-public class SiteListViewFragment extends Fragment implements SwipeRefreshLayout.OnRefreshListener {
+public class ListViewFragment extends Fragment implements SwipeRefreshLayout.OnRefreshListener {
 
-    public static final String TAG = "SiteListViewFragmentTag";
-    private static final String LOADING_NEWS_LIST_MSG = "Loading news...";
+    public static final String TAG = "ListViewFragmentTag";
+    public static final String ACTION_SEARCH_HINT = "Search";
     private NewsListAdapter mAdapter;
-    private ProgressDialog mProgressDialog;
     private SwipeRefreshLayout mSwipeLayout;
     private String mSiteUrl;
     private long mSiteId;
     private NewsListDatabaseHelper mNewsListDatabaseHelper;
 
 
-    public SiteListViewFragment() {
+    public ListViewFragment() {
     }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setRetainInstance(true);
+        setHasOptionsMenu(true);
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View rootView = inflater.inflate(R.layout.site_listview_fragment, container, false);
+        View rootView = inflater.inflate(R.layout.main_listview_fragment, container, false);
         mSwipeLayout = (SwipeRefreshLayout) rootView.findViewById(R.id.swipe_container);
         mSwipeLayout.setOnRefreshListener(this);
         ListView storiesList = (ListView) rootView.findViewById(R.id.storiesList);
@@ -62,6 +69,8 @@ public class SiteListViewFragment extends Fragment implements SwipeRefreshLayout
                 listener.onListItemSelected(url);
             }
         });
+
+
         setNewsList();
         return rootView;
     }
@@ -72,6 +81,20 @@ public class SiteListViewFragment extends Fragment implements SwipeRefreshLayout
         loadNewsList();
     }
 
+    @Override
+    public void onCreateOptionsMenu(Menu menu,MenuInflater inflater) {
+        getActivity().getMenuInflater().inflate(R.menu.menu_main, menu);
+        SearchManager searchManager = (SearchManager) getActivity().getSystemService(Context.SEARCH_SERVICE);
+        MenuItem searchItem = menu.findItem(R.id.action_search);
+        SearchView searchView = (SearchView) MenuItemCompat.getActionView(searchItem);
+        searchView.setSearchableInfo(searchManager.getSearchableInfo(getActivity().getComponentName()));
+        searchView.setSubmitButtonEnabled(true);
+        searchView.setQueryHint(ACTION_SEARCH_HINT);
+        searchView.setOnQueryTextListener(new ActionSearchUtil(mAdapter));
+
+        super.onCreateOptionsMenu(menu, inflater);
+
+    }
     private void loadNewsList() {
         if (new TestNetwork(getActivity()).isNetworkAvailable()) {
             NewsListDownloadTask refreshing = new NewsListDownloadTask();
@@ -124,11 +147,6 @@ public class SiteListViewFragment extends Fragment implements SwipeRefreshLayout
 
         @Override
         protected void onPreExecute() {
-//            if (null == mProgressDialog && !mSwipeLayout.isRefreshing()){
-//                mProgressDialog = new ProgressDialog(getActivity());
-//                mProgressDialog.setMessage(LOADING_NEWS_LIST_MSG);
-//                mProgressDialog.show();
-//            }
             mSwipeLayout.setRefreshing(true);
         }
 
@@ -136,10 +154,6 @@ public class SiteListViewFragment extends Fragment implements SwipeRefreshLayout
         protected void onPostExecute(Void result) {
             setNewsList();
             mSwipeLayout.setRefreshing(false);
-//            if(null != mProgressDialog && mProgressDialog.isShowing()){
-//                mProgressDialog.dismiss();
-//                mProgressDialog=null;
-//            }
         }
     }
     public void setListViewUrl (String url,long id) {
