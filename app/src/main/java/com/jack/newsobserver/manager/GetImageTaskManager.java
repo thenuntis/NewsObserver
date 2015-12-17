@@ -8,9 +8,9 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 
-import com.jack.newsobserver.util.ImageCache;
 import com.jack.newsobserver.R;
-import com.jack.newsobserver.adapter.NewsListAdapter.ViewHolder;
+import com.jack.newsobserver.adapter.NewsListRecyclerAdapter;
+import com.jack.newsobserver.util.ImageCache;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -23,11 +23,12 @@ public class GetImageTaskManager extends AsyncTask<String, Void, Bitmap> {
     private ProgressBar bar;
     private Context ctx;
 
-    public GetImageTaskManager(ViewHolder viewHolder, Context context) {
+    public GetImageTaskManager(NewsListRecyclerAdapter.ViewHolder holder, Context context) {
         this.ctx=context;
-        this.imgIcon = viewHolder.iconImg;
-        this.bar = viewHolder.indicator;
+        this.imgIcon = holder.iconImg;
+        this.bar = holder.indicator;
     }
+
 
     @Override
     protected void onPreExecute() {

@@ -12,13 +12,14 @@ import android.view.MenuItem;
 import android.view.View;
 
 import com.jack.newsobserver.R;
+import com.jack.newsobserver.adapter.NewsListRecyclerAdapter;
 import com.jack.newsobserver.fragments.DrawerExpListFragment;
-import com.jack.newsobserver.fragments.ListViewFragment;
+import com.jack.newsobserver.fragments.RecyclerViewFragment;
 import com.jack.newsobserver.fragments.WebViewFragment;
 
 
-public class MainActivity extends ActionBarActivity implements ListViewFragment.OnSelectedLinkListener,
-        DrawerExpListFragment.onSelectedExpListListener {
+public class MainActivity extends ActionBarActivity implements
+        DrawerExpListFragment.onSelectedExpListListener,NewsListRecyclerAdapter.OnSelectedLinkListener {
 
     private DrawerLayout mDrawerLayout;
     private static String subTitleString;
@@ -47,11 +48,11 @@ public class MainActivity extends ActionBarActivity implements ListViewFragment.
             }
         }
         FragmentManager manager = getFragmentManager();
-        if (null == manager.findFragmentByTag(ListViewFragment.TAG)) {
+        if (null == manager.findFragmentByTag(RecyclerViewFragment.TAG)){
             FragmentTransaction transaction = manager.beginTransaction();
-            ListViewFragment listViewFragment = new ListViewFragment();
-            transaction.add(R.id.list_view_fragment, listViewFragment, ListViewFragment.TAG);
-            listViewFragment.setListViewUrl(newsListUrl,newsLinkId);
+            RecyclerViewFragment recyclerViewFragment = new RecyclerViewFragment();
+            transaction.add(R.id.list_view_fragment, recyclerViewFragment, RecyclerViewFragment.TAG);
+            recyclerViewFragment.setListUrl(newsListUrl, newsLinkId);
             transaction.commit();
         }
         mDrawerLayout=(DrawerLayout) findViewById(R.id.main_drawer_layout);
@@ -142,20 +143,20 @@ public class MainActivity extends ActionBarActivity implements ListViewFragment.
         newsLinkId = id;
         getSupportActionBar().setSubtitle(subTitleString);
         FragmentManager manager = getFragmentManager();
-        ListViewFragment listViewFragment = (ListViewFragment) manager
-                .findFragmentByTag(ListViewFragment.TAG);
+        RecyclerViewFragment recyclerViewFragment = (RecyclerViewFragment) manager
+                .findFragmentByTag(RecyclerViewFragment.TAG);
         WebViewFragment webViewFragment = (WebViewFragment) manager
                 .findFragmentByTag(WebViewFragment.TAG);
         if (webViewFragment !=null && webViewFragment.isVisible()){
-            listViewFragment = new ListViewFragment();
+            recyclerViewFragment = new RecyclerViewFragment();
             FragmentTransaction transaction = manager.beginTransaction();
-            transaction.replace(R.id.list_view_fragment, listViewFragment, ListViewFragment.TAG);
+            transaction.replace(R.id.list_view_fragment, recyclerViewFragment, RecyclerViewFragment.TAG);
             transaction.addToBackStack(subTitleString);
-            listViewFragment.setListViewUrl(newsListUrl,newsLinkId);
+            recyclerViewFragment.setListUrl(newsListUrl, newsLinkId);
             transaction.commit();
         }else {
-            listViewFragment.setListViewUrl(newsListUrl,newsLinkId);
-            listViewFragment.onRefresh();
+            recyclerViewFragment.setListUrl(newsListUrl, newsLinkId);
+            recyclerViewFragment.onRefresh();
         }
         mDrawerLayout.closeDrawer(GravityCompat.START);
     }

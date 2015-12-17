@@ -2,20 +2,19 @@ package com.jack.newsobserver.util;
 
 import android.support.v7.widget.SearchView;
 
-import com.jack.newsobserver.adapter.NewsListAdapter;
+import com.jack.newsobserver.adapter.NewsListRecyclerAdapter;
 
 public class ActionSearchUtil implements SearchView.OnQueryTextListener {
 
-    private NewsListAdapter mAdapter;
+    private NewsListRecyclerAdapter mRecAdapter;
 
-    public ActionSearchUtil(NewsListAdapter adapter) {
-        this.mAdapter = adapter;
-
+    public ActionSearchUtil (NewsListRecyclerAdapter adapter){
+        this.mRecAdapter = adapter;
     }
 
     public boolean onQueryTextChange(String text_new) {
         if (text_new.length()!=0) {
-            mAdapter.filter(text_new);
+            mRecAdapter.filter(text_new);
             return true;
         }else return false;
     }
