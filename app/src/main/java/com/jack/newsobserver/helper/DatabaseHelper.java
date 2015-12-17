@@ -7,7 +7,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 
 public class DatabaseHelper extends SQLiteOpenHelper {
     public static final String DATABASE_NAME = "newsobserverdb.db";
-    public static final int SCHEMA = 1;
+    public static final int SCHEMA = 2;
     public static final String NEWS_TOPICS_TABLE = "topics";
     public static final String TOPICS_CATEGORY_ID_COLUMN = "category_id";
     public static final String TOPICS_LINK_COLUMN = "link";
@@ -61,7 +61,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-
+        db.execSQL("DROP TABLE IF EXISTS " + NEWS_LIST_TABLE);
+        db.execSQL("DROP TABLE IF EXISTS " + NEWS_TOPICS_TABLE);
+        db.execSQL("DROP TABLE IF EXISTS " + NEWS_CATEGORY_TABLE);
+        onCreate(db);
     }
 
     @Override
