@@ -125,8 +125,6 @@ public class RecyclerViewFragment extends Fragment implements SwipeRefreshLayout
         }
     }
 
-
-
     private class NewsListDownloadTask extends AsyncTask<Void, Void, Void> {
 
         @Override

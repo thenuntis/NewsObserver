@@ -13,10 +13,8 @@ public class ActionSearchUtil implements SearchView.OnQueryTextListener {
     }
 
     public boolean onQueryTextChange(String text_new) {
-        if (text_new.length()!=0) {
-            mRecAdapter.filter(text_new);
-            return true;
-        }else return false;
+        mRecAdapter.filter(text_new);
+        return true;
     }
 
     public boolean onQueryTextSubmit(String text) {
