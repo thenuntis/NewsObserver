@@ -4,6 +4,7 @@ import android.app.Fragment;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -25,6 +26,8 @@ public class DrawerExpListFragment extends Fragment implements DataFromHtmlParse
     private TopicsDatabaseHelper mTopicsDatabaseHelper;
     private DrawerExpListAdapter mDrawerExpListAdapter;
     private ExpandableListView mExpandableListView;
+    private int mRecentChildIndex = -1;
+    private int mRecentGroupIndex = -1;
 
     public DrawerExpListFragment() {
 
@@ -62,9 +65,24 @@ public class DrawerExpListFragment extends Fragment implements DataFromHtmlParse
         mDrawerExpListAdapter = new DrawerExpListAdapter(getActivity(),
                 mTopicsDatabaseHelper.getCategoriesWithRelatedTopics());
         mExpandableListView.setAdapter(mDrawerExpListAdapter);
+        mExpandableListView.setOnGroupExpandListener(new ExpandableListView.OnGroupExpandListener() {
+            @Override
+            public void onGroupExpand(int groupPosition) {
+                if (-1 != mRecentGroupIndex && groupPosition == mRecentGroupIndex){
+                    if (-1 != mRecentChildIndex)
+                        Log.d("expanded", String.valueOf(mRecentGroupIndex)+"_"+mRecentChildIndex);
+                        mExpandableListView.setSelectedChild(mRecentGroupIndex,mRecentChildIndex,true);
+                }
+            }
+        });
         mExpandableListView.setOnChildClickListener(new ExpandableListView.OnChildClickListener() {
             @Override
             public boolean onChildClick(ExpandableListView parent, View v, int groupPosition, int childPosition, long id) {
+                int index = parent.getFlatListPosition(ExpandableListView.getPackedPositionForChild(groupPosition, childPosition));
+                mRecentChildIndex = childPosition;
+                mRecentGroupIndex = groupPosition;
+                parent.setItemChecked(index, true);
+                v.setSelected(true);
                 NewsCategory category = (NewsCategory) mDrawerExpListAdapter.getGroup(groupPosition);
                 NewsTopic topic = (NewsTopic) mDrawerExpListAdapter.getChild(groupPosition, childPosition);
                 String subTitle = category.getCategoryName() + ": " + topic.getTopicName();

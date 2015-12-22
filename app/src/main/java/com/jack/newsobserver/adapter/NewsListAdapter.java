@@ -1,7 +1,13 @@
 package com.jack.newsobserver.adapter;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.support.v7.widget.RecyclerView;
+import android.text.Spannable;
+import android.text.SpannableString;
+import android.text.Spanned;
+import android.text.style.BackgroundColorSpan;
+import android.text.style.ForegroundColorSpan;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,24 +19,25 @@ import com.jack.newsobserver.R;
 import com.jack.newsobserver.manager.GetImageTaskManager;
 import com.jack.newsobserver.models.NewsList;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-public class NewsListRecyclerAdapter extends RecyclerView.Adapter<NewsListRecyclerAdapter.ViewHolder> {
+public class NewsListAdapter extends RecyclerView.Adapter<NewsListAdapter.ViewHolder> {
 
     private final Context mContext;
     private List<NewsList> mNewsList;
-    private List<NewsList> mFilteredList = new ArrayList<>();
+    private String mSearchText;
+//    private List<NewsList> mFilteredList = new ArrayList<>();
 
-    public NewsListRecyclerAdapter(Context mContext) {
+    public NewsListAdapter(Context mContext) {
         this.mContext = mContext;
     }
 
-    public void updateList (List<NewsList> list){
+    public void updateList(List<NewsList> list, String searchText){
         mNewsList = list;
-        mFilteredList.clear();
-        mFilteredList.addAll(list);
+        mSearchText=searchText;
+//        mFilteredList.clear();
+//        mFilteredList.addAll(list);
         this.notifyDataSetChanged();
     }
 
@@ -48,7 +55,11 @@ public class NewsListRecyclerAdapter extends RecyclerView.Adapter<NewsListRecycl
     public void onBindViewHolder(ViewHolder holder, int position) {
         final NewsList newsItem = mNewsList.get(position);
         new GetImageTaskManager(holder,mContext).execute(newsItem.getImgUrl());
-        holder.nameTxt.setText(newsItem.getStoryTitle());
+        if (null == mSearchText) {
+            holder.nameTxt.setText(newsItem.getStoryTitle());
+        }else {
+            holder.nameTxt.setText(highlightedSearchText(newsItem.getStoryTitle()));
+        }
         holder.pubDateTxt.setText(newsItem.getStoryPubdate());
         holder.authorTxt.setText(newsItem.getStoryAuthor());
         holder.setClickListener(new ViewHolder.NewsListItemClickListener() {
@@ -102,22 +113,18 @@ public class NewsListRecyclerAdapter extends RecyclerView.Adapter<NewsListRecycl
         }
 
     }
-
-    public void filter(String charText) {
-        charText = charText.toLowerCase(Locale.getDefault());
-        mNewsList.clear();
-        if (charText.length() == 0) {
-            mNewsList.addAll(mFilteredList);
-        }
-        else{
-            for (NewsList list : mFilteredList) {
-                if (list.getStoryTitle().toLowerCase(Locale.getDefault()).contains(charText)){
-                    mNewsList.add(list);
-                }
+        private Spannable highlightedSearchText (String text){
+            int startPos = text.toLowerCase(Locale.US).indexOf(mSearchText.toLowerCase(Locale.US));
+            int endPos = startPos + mSearchText.length();
+            Spannable highlightedText = new SpannableString(text);
+            if(startPos !=-1){
+                highlightedText.setSpan(new BackgroundColorSpan(Color.BLACK),startPos,endPos, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                highlightedText.setSpan(new ForegroundColorSpan(Color.WHITE),startPos,endPos, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
             }
+            return highlightedText;
         }
-        notifyDataSetChanged();
-    }
+
+
 
     public interface OnSelectedLinkListener {
         void onListItemSelected(String url);

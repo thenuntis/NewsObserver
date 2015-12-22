@@ -21,12 +21,11 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.jack.newsobserver.R;
-import com.jack.newsobserver.adapter.NewsListRecyclerAdapter;
+import com.jack.newsobserver.adapter.NewsListAdapter;
 import com.jack.newsobserver.helper.NewsListDatabaseHelper;
 import com.jack.newsobserver.helper.TestNetwork;
 import com.jack.newsobserver.models.NewsList;
 import com.jack.newsobserver.parser.NewsListFromXmlParser;
-import com.jack.newsobserver.util.ActionSearchUtil;
 import com.jack.newsobserver.util.ImageCache;
 
 import java.util.List;
@@ -35,8 +34,12 @@ import java.util.List;
 public class RecyclerViewFragment extends Fragment implements SwipeRefreshLayout.OnRefreshListener {
 
     public static final String TAG = "RecyclerViewFragmentTag";
-    public static final String ACTION_SEARCH_HINT = "Search";
-    private NewsListRecyclerAdapter mRecAdapter;
+    private static final String ACTION_SEARCH_HINT = "Search";
+    private static final String FILTER_STRING = "filterString";
+    private static final String EXPANDED_SEARCH_FIELD = "searchStatus";
+    private static boolean searchStatus = true;
+    private static String filterString ;
+    private NewsListAdapter mRecAdapter;
     private SwipeRefreshLayout mSwipeLayout;
     private String mSiteUrl;
     private long mSiteId;
@@ -53,19 +56,26 @@ public class RecyclerViewFragment extends Fragment implements SwipeRefreshLayout
         setHasOptionsMenu(true);
     }
 
+
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.main_recyclerview_fragment, container, false);
         mSwipeLayout = (SwipeRefreshLayout) rootView.findViewById(R.id.swipe_container);
         mSwipeLayout.setOnRefreshListener(this);
-        RecyclerView recList = (RecyclerView) rootView.findViewById(R.id.newsList);
-        recList.setHasFixedSize(true);
+        RecyclerView recyclerList = (RecyclerView) rootView.findViewById(R.id.newsList);
+        recyclerList.setHasFixedSize(true);
         LinearLayoutManager layoutManager = new LinearLayoutManager(getActivity());
         layoutManager.setOrientation(LinearLayoutManager.VERTICAL);
-        recList.setLayoutManager(layoutManager);
-        mRecAdapter = new NewsListRecyclerAdapter(getActivity());
-        recList.setAdapter(mRecAdapter);
-        setNewsList();
+        recyclerList.setLayoutManager(layoutManager);
+        mRecAdapter = new NewsListAdapter(getActivity());
+        recyclerList.setAdapter(mRecAdapter);
+        if (null == savedInstanceState){
+            setNewsList(null);
+        }else {
+            filterString = savedInstanceState.getString(FILTER_STRING);
+            searchStatus = savedInstanceState.getBoolean(EXPANDED_SEARCH_FIELD,true);
+            setNewsList(filterString);
+        }
         return rootView;
     }
 
@@ -76,15 +86,47 @@ public class RecyclerViewFragment extends Fragment implements SwipeRefreshLayout
     }
 
     @Override
+    public void onSaveInstanceState(Bundle outState) {
+        outState.putString(FILTER_STRING, filterString);
+        outState.putBoolean(EXPANDED_SEARCH_FIELD,searchStatus);
+    }
+
+    @Override
     public void onCreateOptionsMenu(Menu menu,MenuInflater inflater) {
         getActivity().getMenuInflater().inflate(R.menu.menu_main, menu);
         SearchManager searchManager = (SearchManager) getActivity().getSystemService(Context.SEARCH_SERVICE);
         MenuItem searchItem = menu.findItem(R.id.action_search);
-        SearchView searchView = (SearchView) MenuItemCompat.getActionView(searchItem);
+        final SearchView searchView = (SearchView) MenuItemCompat.getActionView(searchItem);
         searchView.setSearchableInfo(searchManager.getSearchableInfo(getActivity().getComponentName()));
-        searchView.setSubmitButtonEnabled(true);
+        searchView.setIconified(searchStatus);
+        searchView.setQuery(filterString, false);
         searchView.setQueryHint(ACTION_SEARCH_HINT);
-        searchView.setOnQueryTextListener(new ActionSearchUtil(mRecAdapter));
+        searchView.setOnSearchClickListener(new SearchView.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                searchStatus = searchView.isIconified();
+            }
+        });
+        searchView.setOnCloseListener(new SearchView.OnCloseListener() {
+            @Override
+            public boolean onClose() {
+                searchStatus = true;
+                return false;
+            }
+        });
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String s) {
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String s) {
+                filterString = s;
+                setNewsList(filterString);
+                return true;
+            }
+        });
         super.onCreateOptionsMenu(menu, inflater);
 
     }
@@ -109,19 +151,19 @@ public class RecyclerViewFragment extends Fragment implements SwipeRefreshLayout
                 }
             });
             dialogMsg.show();
-            setNewsList();
+            setNewsList(null);
         }
     }
 
-    public void setNewsList() {
+    public void setNewsList(String searchText) {
         if (null == mNewsListDatabaseHelper){
             mNewsListDatabaseHelper = new NewsListDatabaseHelper(getActivity());
         }
-        List<NewsList> newsList = mNewsListDatabaseHelper.getNewsByTopic(mSiteId);
-        if (0 == newsList.size()){
+        List<NewsList> newsList = mNewsListDatabaseHelper.getNewsList(mSiteId, searchText);
+        if (0 == newsList.size() && filterString.length()==0){
             loadNewsList();
         }else {
-            mRecAdapter.updateList(newsList);
+            mRecAdapter.updateList(newsList,searchText);
         }
     }
 
@@ -141,7 +183,7 @@ public class RecyclerViewFragment extends Fragment implements SwipeRefreshLayout
 
         @Override
         protected void onPostExecute(Void result) {
-            setNewsList();
+            setNewsList(null);
             mSwipeLayout.setRefreshing(false);
         }
     }

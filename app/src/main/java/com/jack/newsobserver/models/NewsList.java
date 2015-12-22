@@ -61,9 +61,4 @@ public class NewsList {
         this.imgUrl = imgUrl;
     }
 
-    @Override
-    public String toString() {
-        return "NewsList [storyTitle=" + storyTitle + ", storyLink=" + storyLink + ", storyAuthor="
-                + storyAuthor + ", storyPubdate=" + storyPubdate + ", imgUrl=" + imgUrl + "]";
-    }
 }

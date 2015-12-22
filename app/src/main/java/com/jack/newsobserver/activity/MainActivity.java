@@ -12,14 +12,14 @@ import android.view.MenuItem;
 import android.view.View;
 
 import com.jack.newsobserver.R;
-import com.jack.newsobserver.adapter.NewsListRecyclerAdapter;
+import com.jack.newsobserver.adapter.NewsListAdapter;
 import com.jack.newsobserver.fragments.DrawerExpListFragment;
 import com.jack.newsobserver.fragments.RecyclerViewFragment;
 import com.jack.newsobserver.fragments.WebViewFragment;
 
 
 public class MainActivity extends ActionBarActivity implements
-        DrawerExpListFragment.onSelectedExpListListener,NewsListRecyclerAdapter.OnSelectedLinkListener {
+        DrawerExpListFragment.onSelectedExpListListener,NewsListAdapter.OnSelectedLinkListener {
 
     private DrawerLayout mDrawerLayout;
     private static String subTitleString;

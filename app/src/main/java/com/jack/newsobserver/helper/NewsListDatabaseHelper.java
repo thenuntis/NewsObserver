@@ -13,15 +13,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class NewsListDatabaseHelper {
-    private Context ctx;
     private DatabaseHelper db ;
     private DateTimeUtil mDateTimeUtil;
 
     public NewsListDatabaseHelper(Context context) {
-        this.ctx = context;
-        this.db = DatabaseHelper.getInstance(ctx);
+        this.db = DatabaseHelper.getInstance(context);
         if (null == mDateTimeUtil){
-            mDateTimeUtil = new DateTimeUtil(ctx);
+            mDateTimeUtil = new DateTimeUtil(context);
         }
     }
 
@@ -50,10 +48,17 @@ public class NewsListDatabaseHelper {
                 helper.endTransaction();
         }
     }
-    public List<NewsList> getNewsByTopic (long topicId){
+    public List<NewsList> getNewsList(long topicId, String searchText){
+        String filtredText;
+        if (null == searchText) {
+            filtredText = "%";
+        }else {
+            filtredText = searchText;
+        }
         List<NewsList> newsList = new ArrayList<>();
         String query = "SELECT * FROM "+DatabaseHelper.NEWS_LIST_TABLE
                 + " WHERE " + DatabaseHelper.LIST_TOPIC_ID_COLUMN + " = " + topicId
+                + " AND " + DatabaseHelper.LIST_TITLE_COLUMN + " LIKE '%" + filtredText + "%' "
                 + " ORDER BY " + DatabaseHelper.LIST_PUBDATE_COLUMN + " DESC";
         Cursor cursor = db.createCursor(query);
         while (cursor.moveToNext()){
