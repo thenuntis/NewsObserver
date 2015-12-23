@@ -3,6 +3,7 @@ package com.jack.newsobserver.activity;
 
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.ActionBarDrawerToggle;
 import android.support.v4.view.GravityCompat;
@@ -16,6 +17,9 @@ import com.jack.newsobserver.adapter.NewsListAdapter;
 import com.jack.newsobserver.fragments.DrawerExpListFragment;
 import com.jack.newsobserver.fragments.RecyclerViewFragment;
 import com.jack.newsobserver.fragments.WebViewFragment;
+import com.jack.newsobserver.parser.NewsHtmlPageMinimizer;
+
+import java.io.IOException;
 
 
 public class MainActivity extends ActionBarActivity implements
@@ -25,12 +29,14 @@ public class MainActivity extends ActionBarActivity implements
     private static String subTitleString;
     private static String newsListUrl;
     private static long newsLinkId;
+//    private static String miniHtml;
     private static final String SUBTITLE_KEY = "SUBTITLE";
     private static final String RECENT_LINK_URL_KEY = "LINKURLKEY";
     private static final String RECENT_LINK_ID_KEY = "LINKIDKEY";
-    private static final String HTML_FEED_URL = "http://www.cbc.ca/rss/";
+//    private static final String HTML_FEED_URL = "http://www.cbc.ca/rss/";
     private static final String DEFAULT_URL = "http://www.cbc.ca/cmlink/rss-topstories";
     private static final String DEFAULT_SUBTITLE = "General News: Top Stories";
+
 
 
     @Override
@@ -88,19 +94,8 @@ public class MainActivity extends ActionBarActivity implements
 
     @Override
     public void onListItemSelected(String url) {
-        FragmentManager manager = getFragmentManager();
-        FragmentTransaction transaction = manager.beginTransaction();
-        transaction.setCustomAnimations(R.anim.enter, R.anim.exit);
-        WebViewFragment webViewFragment = (WebViewFragment) manager.findFragmentByTag(WebViewFragment.TAG);
-        if (webViewFragment != null) {
-            webViewFragment.setWebViewUrl(url);
-        }else {
-            webViewFragment = new WebViewFragment();
-        }
-        transaction.replace(R.id.list_view_fragment, webViewFragment, WebViewFragment.TAG);
-        transaction.addToBackStack(subTitleString);
-        webViewFragment.setWebViewUrl(url);
-        transaction.commit();
+        MinimizeHtmlTask minimizeHtmlTask = new MinimizeHtmlTask();
+        minimizeHtmlTask.execute(url);
     }
     @Override
     public void onBackPressed() {
@@ -159,5 +154,40 @@ public class MainActivity extends ActionBarActivity implements
             recyclerViewFragment.onRefresh();
         }
         mDrawerLayout.closeDrawer(GravityCompat.START);
+    }
+
+    private class MinimizeHtmlTask extends AsyncTask<String,Void,String>{
+        private String primaryUrl;
+
+        @Override
+        protected String doInBackground(String... params) {
+            primaryUrl = params[0];
+            try {
+                return NewsHtmlPageMinimizer.getMinimizedHtml(primaryUrl);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(String htmlString) {
+            if (null == htmlString){
+                htmlString = primaryUrl;
+            }
+            FragmentManager manager = getFragmentManager();
+            FragmentTransaction transaction = manager.beginTransaction();
+            transaction.setCustomAnimations(R.anim.enter, R.anim.exit);
+            WebViewFragment webViewFragment = (WebViewFragment) manager.findFragmentByTag(WebViewFragment.TAG);
+            if (webViewFragment != null) {
+                webViewFragment.setWebViewUrl(htmlString,primaryUrl);
+            }else {
+                webViewFragment = new WebViewFragment();
+            }
+            transaction.replace(R.id.list_view_fragment, webViewFragment, WebViewFragment.TAG);
+            transaction.addToBackStack(subTitleString);
+            webViewFragment.setWebViewUrl(htmlString,primaryUrl);
+            transaction.commit();
+        }
     }
 }

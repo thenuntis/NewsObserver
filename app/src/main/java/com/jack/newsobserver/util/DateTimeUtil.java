@@ -9,13 +9,14 @@ import java.util.Calendar;
 import java.util.Date;
 
 public class DateTimeUtil {
-    private Context context;
-    public DateTimeUtil(Context context) {
-    this.context=context;
-    }
+//    private Context context;
+//
+//    public DateTimeUtil(Context context) {
+//    this.context=context;
+//    }
 
 
-    public long convertStringToMsec (String dateTimeValue){
+    public static long convertStringToMsec (String dateTimeValue){
         Calendar calendar = Calendar.getInstance();
         SimpleDateFormat format = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss");
         Date dateItem = new Date();
@@ -28,7 +29,7 @@ public class DateTimeUtil {
         return calendar.getTimeInMillis();
     }
 
-    public String getStringFromMsec(long millisec){
+    public static String getStringFromMsec(Context context, long millisec){
         Date dateItem = new Date();
         dateItem.setTime(millisec);
         java.text.DateFormat dateFormat = DateFormat.getDateFormat(context);

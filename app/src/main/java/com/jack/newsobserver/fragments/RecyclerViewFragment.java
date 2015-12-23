@@ -88,7 +88,7 @@ public class RecyclerViewFragment extends Fragment implements SwipeRefreshLayout
     @Override
     public void onSaveInstanceState(Bundle outState) {
         outState.putString(FILTER_STRING, filterString);
-        outState.putBoolean(EXPANDED_SEARCH_FIELD,searchStatus);
+        outState.putBoolean(EXPANDED_SEARCH_FIELD, searchStatus);
     }
 
     @Override
@@ -160,7 +160,7 @@ public class RecyclerViewFragment extends Fragment implements SwipeRefreshLayout
             mNewsListDatabaseHelper = new NewsListDatabaseHelper(getActivity());
         }
         List<NewsList> newsList = mNewsListDatabaseHelper.getNewsList(mSiteId, searchText);
-        if (0 == newsList.size() && filterString.length()==0){
+        if (0 == newsList.size() && null == searchText ){
             loadNewsList();
         }else {
             mRecAdapter.updateList(newsList,searchText);

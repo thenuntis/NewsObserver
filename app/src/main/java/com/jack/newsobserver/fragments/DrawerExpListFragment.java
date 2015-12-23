@@ -1,10 +1,10 @@
 package com.jack.newsobserver.fragments;
 
 import android.app.Fragment;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,9 +17,11 @@ import com.jack.newsobserver.helper.TopicsDatabaseHelper;
 import com.jack.newsobserver.manager.AlertDialogManager;
 import com.jack.newsobserver.models.NewsCategory;
 import com.jack.newsobserver.models.NewsTopic;
-import com.jack.newsobserver.parser.DataFromHtmlParser;
+import com.jack.newsobserver.parser.MainUrlHtmlParser;
 
-public class DrawerExpListFragment extends Fragment implements DataFromHtmlParser.OnFillFinished {
+import java.io.IOException;
+
+public class DrawerExpListFragment extends Fragment {
 
     public static final String TAG = "DrawerExpListFragmentTag";
     private static final String HTML_FEED_URL = "http://www.cbc.ca/rss/";
@@ -46,8 +48,8 @@ public class DrawerExpListFragment extends Fragment implements DataFromHtmlParse
         mExpandableListView = (ExpandableListView)rootView.findViewById(R.id.drawer_ltr_expListView);
         if (null == savedInstanceState){
             if (new TestNetwork(getActivity()).isNetworkAvailable()) {
-                DataFromHtmlParser mDataFromHtmlParser = new DataFromHtmlParser(getActivity(),this);
-                mDataFromHtmlParser.execute(HTML_FEED_URL);
+                HtmlDataParseTask parseTask = new HtmlDataParseTask();
+                parseTask.execute(HTML_FEED_URL);
             } else{
                 new AlertDialogManager().alertDialogShow(getActivity());
             }
@@ -55,6 +57,26 @@ public class DrawerExpListFragment extends Fragment implements DataFromHtmlParse
             initDrawerExpandableList();
         }
         return rootView;
+    }
+
+    private class HtmlDataParseTask extends AsyncTask<String,Void,Void>{
+        @Override
+        protected Void doInBackground(String... params) {
+            try {
+                if (null == mTopicsDatabaseHelper){
+                    mTopicsDatabaseHelper=new TopicsDatabaseHelper(getActivity());
+                }
+                mTopicsDatabaseHelper.addCategoryAndRelatedTopics(MainUrlHtmlParser
+                                                                .startParsingUrl(params[0]));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return null;
+        }
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            initDrawerExpandableList().notifyDataSetChanged();
+        }
     }
 
     private DrawerExpListAdapter initDrawerExpandableList() {
@@ -69,10 +91,10 @@ public class DrawerExpListFragment extends Fragment implements DataFromHtmlParse
             @Override
             public void onGroupExpand(int groupPosition) {
                 if (-1 != mRecentGroupIndex && groupPosition == mRecentGroupIndex){
-                    if (-1 != mRecentChildIndex)
-                        Log.d("expanded", String.valueOf(mRecentGroupIndex)+"_"+mRecentChildIndex);
-                        mExpandableListView.setSelectedChild(mRecentGroupIndex,mRecentChildIndex,true);
-                }
+                    int index = mExpandableListView.getFlatListPosition(ExpandableListView
+                            .getPackedPositionForChild(mRecentGroupIndex, mRecentChildIndex));
+                    mExpandableListView.setItemChecked(index, true);
+               }
             }
         });
         mExpandableListView.setOnChildClickListener(new ExpandableListView.OnChildClickListener() {
@@ -82,7 +104,6 @@ public class DrawerExpListFragment extends Fragment implements DataFromHtmlParse
                 mRecentChildIndex = childPosition;
                 mRecentGroupIndex = groupPosition;
                 parent.setItemChecked(index, true);
-                v.setSelected(true);
                 NewsCategory category = (NewsCategory) mDrawerExpListAdapter.getGroup(groupPosition);
                 NewsTopic topic = (NewsTopic) mDrawerExpListAdapter.getChild(groupPosition, childPosition);
                 String subTitle = category.getCategoryName() + ": " + topic.getTopicName();
@@ -105,12 +126,6 @@ public class DrawerExpListFragment extends Fragment implements DataFromHtmlParse
             mExpandableListView.setIndicatorBoundsRelative(pxStart,pxEnd);
         }
     }
-
-    @Override
-    public void callBack() {
-        initDrawerExpandableList().notifyDataSetChanged();
-    }
-
 
     public interface onSelectedExpListListener{
         void onExpandableChildItemClick(String title, String url, long id);
