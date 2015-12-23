@@ -1,2 +1,2 @@
 # NewsObserver
-this is a simple news rss reader
+this is a simple news rss reader (Сanadian news)
