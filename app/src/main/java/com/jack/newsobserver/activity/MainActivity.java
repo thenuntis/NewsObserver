@@ -12,14 +12,13 @@ import android.view.MenuItem;
 import android.view.View;
 
 import com.jack.newsobserver.R;
-import com.jack.newsobserver.adapter.NewsListRecyclerAdapter;
 import com.jack.newsobserver.fragments.DrawerExpListFragment;
 import com.jack.newsobserver.fragments.RecyclerViewFragment;
 import com.jack.newsobserver.fragments.WebViewFragment;
 
 
 public class MainActivity extends ActionBarActivity implements
-        DrawerExpListFragment.onSelectedExpListListener,NewsListRecyclerAdapter.OnSelectedLinkListener {
+        DrawerExpListFragment.onSelectedExpListListener,RecyclerViewFragment.onMinimizingFinishedListener {
 
     private DrawerLayout mDrawerLayout;
     private static String subTitleString;
@@ -28,9 +27,10 @@ public class MainActivity extends ActionBarActivity implements
     private static final String SUBTITLE_KEY = "SUBTITLE";
     private static final String RECENT_LINK_URL_KEY = "LINKURLKEY";
     private static final String RECENT_LINK_ID_KEY = "LINKIDKEY";
-    private static final String HTML_FEED_URL = "http://www.cbc.ca/rss/";
+//    private static final String HTML_FEED_URL = "http://www.cbc.ca/rss/";
     private static final String DEFAULT_URL = "http://www.cbc.ca/cmlink/rss-topstories";
     private static final String DEFAULT_SUBTITLE = "General News: Top Stories";
+
 
 
     @Override
@@ -86,22 +86,8 @@ public class MainActivity extends ActionBarActivity implements
         outState.putLong(RECENT_LINK_ID_KEY, newsLinkId);
     }
 
-    @Override
-    public void onListItemSelected(String url) {
-        FragmentManager manager = getFragmentManager();
-        FragmentTransaction transaction = manager.beginTransaction();
-        transaction.setCustomAnimations(R.anim.enter, R.anim.exit);
-        WebViewFragment webViewFragment = (WebViewFragment) manager.findFragmentByTag(WebViewFragment.TAG);
-        if (webViewFragment != null) {
-            webViewFragment.setWebViewUrl(url);
-        }else {
-            webViewFragment = new WebViewFragment();
-        }
-        transaction.replace(R.id.list_view_fragment, webViewFragment, WebViewFragment.TAG);
-        transaction.addToBackStack(subTitleString);
-        webViewFragment.setWebViewUrl(url);
-        transaction.commit();
-    }
+
+
     @Override
     public void onBackPressed() {
         mDrawerLayout = (DrawerLayout) findViewById(R.id.main_drawer_layout);
@@ -160,4 +146,22 @@ public class MainActivity extends ActionBarActivity implements
         }
         mDrawerLayout.closeDrawer(GravityCompat.START);
     }
+
+    @Override
+    public void minimizingHtmlPageCallback(String htmlPageString, String primaryUrl) {
+        FragmentManager manager = getFragmentManager();
+        FragmentTransaction transaction = manager.beginTransaction();
+        transaction.setCustomAnimations(R.anim.enter, R.anim.exit);
+        WebViewFragment webViewFragment = (WebViewFragment) manager.findFragmentByTag(WebViewFragment.TAG);
+        if (webViewFragment != null) {
+            webViewFragment.setWebViewUrl(htmlPageString,primaryUrl);
+        }else {
+            webViewFragment = new WebViewFragment();
+        }
+        transaction.replace(R.id.list_view_fragment, webViewFragment, WebViewFragment.TAG);
+        transaction.addToBackStack(subTitleString);
+        webViewFragment.setWebViewUrl(htmlPageString,primaryUrl);
+        transaction.commit();
+    }
+
 }

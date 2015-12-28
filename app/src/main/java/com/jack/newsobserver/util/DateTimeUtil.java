@@ -5,18 +5,11 @@ import android.text.format.DateFormat;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
 import java.util.Date;
 
 public class DateTimeUtil {
-    private Context context;
-    public DateTimeUtil(Context context) {
-    this.context=context;
-    }
 
-
-    public long convertStringToMsec (String dateTimeValue){
-        Calendar calendar = Calendar.getInstance();
+    public static Date convertStringToDate (String dateTimeValue){
         SimpleDateFormat format = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss");
         Date dateItem = new Date();
         try {
@@ -24,16 +17,21 @@ public class DateTimeUtil {
         } catch (ParseException e) {
             e.printStackTrace();
         }
-        calendar.setTime(dateItem);
-        return calendar.getTimeInMillis();
+        return dateItem;
     }
 
-    public String getStringFromMsec(long millisec){
+    public static String getStringFromMsec(Context context, long millisec){
         Date dateItem = new Date();
         dateItem.setTime(millisec);
         java.text.DateFormat dateFormat = DateFormat.getDateFormat(context);
         java.text.DateFormat timeFormat = DateFormat.getTimeFormat(context);
         return dateFormat.format(dateItem)+" "+ timeFormat.format(dateItem);
+    }
 
+    public  static Date getDateFromMsec (long millisec){
+        Date dateItem = new Date();
+        dateItem.setTime(millisec);
+        return dateItem;
     }
 }
+

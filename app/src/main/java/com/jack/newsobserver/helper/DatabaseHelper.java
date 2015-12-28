@@ -21,6 +21,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public static final String LIST_PUBDATE_COLUMN = "pubdate";
     public static final String LIST_IMGURL_COLUMN = "imgurl";
     public static final String LIST_LINK_COLUMN = "link";
+    public static final String LIST_WATCHED_COLUMN = "watcheddate";
     private static DatabaseHelper sDatabaseHelper;
 
     private DatabaseHelper(Context context) {
@@ -53,9 +54,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 + "REFERENCES " + NEWS_TOPICS_TABLE + " ("+ ID_COLUMN + "), "
                 + LIST_TITLE_COLUMN + " text not null, "
                 + LIST_AUTHOR_COLUMN + " text not null, "
-                + LIST_PUBDATE_COLUMN + " integer not null, "
+                + LIST_PUBDATE_COLUMN + " datetime, "
                 + LIST_IMGURL_COLUMN + " text not null, "
-                + LIST_LINK_COLUMN + " text not null" + ")";
+                + LIST_LINK_COLUMN + " text not null, "
+                + LIST_WATCHED_COLUMN + " datetime" + ")";
         db.execSQL(newslistSql);
     }
 

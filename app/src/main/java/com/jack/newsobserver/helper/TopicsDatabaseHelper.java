@@ -21,10 +21,10 @@ public class TopicsDatabaseHelper {
         this.db = DatabaseHelper.getInstance(ctx);
     }
 
-    public void addCategoryAndRelatedTopics(NewsCategory category){
+    public void addCategoryAndRelatedTopics(List<NewsCategory> categoryList){
         SQLiteDatabase helper = db.getReadableDatabase();
         helper.beginTransaction();
-        try {
+        for (NewsCategory category: categoryList){
             long categoryId = addOrUpdateCategory(category.getCategoryName());
             List<NewsTopic> topicsList = category.getCategoryTopics();
             for (NewsTopic topic:topicsList) {
@@ -38,13 +38,12 @@ public class TopicsDatabaseHelper {
                     helper.insertOrThrow(DatabaseHelper.NEWS_TOPICS_TABLE, null, values);
                 }
             }
-            helper.setTransactionSuccessful();
-        } catch (Exception e) {
-            Log.d("TopicDatabaseHelper", "Error while trying to add topic to database");
-        } finally {
-                helper.endTransaction();
         }
+        helper.setTransactionSuccessful();
+        helper.endTransaction();
     }
+
+
 
     private long addOrUpdateCategory(String category) {
         SQLiteDatabase helper = db.getReadableDatabase();

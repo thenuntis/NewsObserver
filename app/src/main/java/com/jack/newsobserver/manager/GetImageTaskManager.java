@@ -9,7 +9,7 @@ import android.widget.ImageView;
 import android.widget.ProgressBar;
 
 import com.jack.newsobserver.R;
-import com.jack.newsobserver.adapter.NewsListRecyclerAdapter;
+import com.jack.newsobserver.adapter.NewsListAdapter;
 import com.jack.newsobserver.util.ImageCache;
 
 import java.io.IOException;
@@ -23,7 +23,7 @@ public class GetImageTaskManager extends AsyncTask<String, Void, Bitmap> {
     private ProgressBar bar;
     private Context ctx;
 
-    public GetImageTaskManager(NewsListRecyclerAdapter.ViewHolder holder, Context context) {
+    public GetImageTaskManager(NewsListAdapter.ViewHolder holder, Context context) {
         this.ctx=context;
         this.imgIcon = holder.iconImg;
         this.bar = holder.indicator;
@@ -39,25 +39,30 @@ public class GetImageTaskManager extends AsyncTask<String, Void, Bitmap> {
 
     @Override
     protected Bitmap doInBackground(String... urls) {
-
-        Bitmap myBitmap = ImageCache.getBitmapFromMemCache(urls[0]);
-        if (myBitmap == null) {
-            try {
-                URL url = new URL(urls[0]);
-                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-                connection.setDoInput(true);
-                connection.connect();
-                InputStream input = connection.getInputStream();
-                myBitmap = BitmapFactory.decodeStream(input);
-                if (myBitmap == null) {
-                    myBitmap = BitmapFactory.decodeResource(ctx.getResources() , R.drawable.no_image);
+        Bitmap myBitmap;
+        if (null != urls[0]){
+            myBitmap = ImageCache.getBitmapFromMemCache(urls[0]);
+            if (myBitmap == null) {
+                try {
+                    URL url = new URL(urls[0]);
+                    HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                    connection.setDoInput(true);
+                    connection.connect();
+                    InputStream input = connection.getInputStream();
+                    myBitmap = BitmapFactory.decodeStream(input);
+                    if (myBitmap == null) {
+                        myBitmap = BitmapFactory.decodeResource(ctx.getResources() , R.drawable.no_image);
+                    }
+                    ImageCache.addBitmapToMemoryCache(urls[0], myBitmap);
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
-                ImageCache.addBitmapToMemoryCache(urls[0], myBitmap);
-            } catch (IOException e) {
-                e.printStackTrace();
             }
+        }else {
+            myBitmap = BitmapFactory.decodeResource(ctx.getResources() , R.drawable.no_image);
         }
         return myBitmap;
+
     }
 
     @Override

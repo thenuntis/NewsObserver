@@ -10,19 +10,16 @@ import com.jack.newsobserver.models.NewsList;
 import com.jack.newsobserver.util.DateTimeUtil;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 public class NewsListDatabaseHelper {
-    private Context ctx;
     private DatabaseHelper db ;
-    private DateTimeUtil mDateTimeUtil;
+    private Context mContext;
 
     public NewsListDatabaseHelper(Context context) {
-        this.ctx = context;
-        this.db = DatabaseHelper.getInstance(ctx);
-        if (null == mDateTimeUtil){
-            mDateTimeUtil = new DateTimeUtil(ctx);
-        }
+        this.mContext = context;
+        this.db = DatabaseHelper.getInstance(context);
     }
 
     public void addNews (List<NewsList> list){
@@ -34,7 +31,7 @@ public class NewsListDatabaseHelper {
                 values.put(DatabaseHelper.LIST_TOPIC_ID_COLUMN,newsItem.getParentTopicId());
                 values.put(DatabaseHelper.LIST_TITLE_COLUMN,newsItem.getStoryTitle());
                 values.put(DatabaseHelper.LIST_AUTHOR_COLUMN,newsItem.getStoryAuthor());
-                values.put(DatabaseHelper.LIST_PUBDATE_COLUMN,mDateTimeUtil.convertStringToMsec(newsItem.getStoryPubdate()));
+                values.put(DatabaseHelper.LIST_PUBDATE_COLUMN,newsItem.getStoryPubdate().getTime());
                 values.put(DatabaseHelper.LIST_LINK_COLUMN,newsItem.getStoryLink());
                 values.put(DatabaseHelper.LIST_IMGURL_COLUMN,newsItem.getImgUrl());
                 int rows = helper.update(DatabaseHelper.NEWS_LIST_TABLE,values,
@@ -50,10 +47,17 @@ public class NewsListDatabaseHelper {
                 helper.endTransaction();
         }
     }
-    public List<NewsList> getNewsByTopic (long topicId){
+    public List<NewsList> getNewsList(long topicId, String searchText){
+        String filtredText;
+        if (null == searchText) {
+            filtredText = "%";
+        }else {
+            filtredText = searchText;
+        }
         List<NewsList> newsList = new ArrayList<>();
         String query = "SELECT * FROM "+DatabaseHelper.NEWS_LIST_TABLE
                 + " WHERE " + DatabaseHelper.LIST_TOPIC_ID_COLUMN + " = " + topicId
+                + " AND " + DatabaseHelper.LIST_TITLE_COLUMN + " LIKE '%" + filtredText + "%' "
                 + " ORDER BY " + DatabaseHelper.LIST_PUBDATE_COLUMN + " DESC";
         Cursor cursor = db.createCursor(query);
         while (cursor.moveToNext()){
@@ -62,12 +66,21 @@ public class NewsListDatabaseHelper {
             newsItem.setParentTopicId(cursor.getLong(cursor.getColumnIndex(DatabaseHelper.LIST_TOPIC_ID_COLUMN)));
             newsItem.setStoryTitle(cursor.getString(cursor.getColumnIndex(DatabaseHelper.LIST_TITLE_COLUMN)));
             newsItem.setStoryAuthor(cursor.getString(cursor.getColumnIndex(DatabaseHelper.LIST_AUTHOR_COLUMN)));
-            newsItem.setStoryPubdate(mDateTimeUtil.getStringFromMsec(cursor.getLong(cursor.getColumnIndex(DatabaseHelper.LIST_PUBDATE_COLUMN))));
+            newsItem.setStoryPubdate(DateTimeUtil.getDateFromMsec(cursor.getLong(cursor.getColumnIndex(DatabaseHelper.LIST_PUBDATE_COLUMN))));
             newsItem.setStoryLink(cursor.getString(cursor.getColumnIndex(DatabaseHelper.LIST_LINK_COLUMN)));
             newsItem.setImgUrl(cursor.getString(cursor.getColumnIndex(DatabaseHelper.LIST_IMGURL_COLUMN)));
+            newsItem.setNewsLastWatched(DateTimeUtil.getDateFromMsec(cursor.getLong(cursor.getColumnIndex(DatabaseHelper.LIST_WATCHED_COLUMN))));
             newsList.add(newsItem);
         }
         cursor.close();
         return newsList;
+    }
+
+    public void setWatched (long newsId){
+        ContentValues values = new ContentValues();
+        values.put(DatabaseHelper.LIST_WATCHED_COLUMN, new Date().getTime());
+        SQLiteDatabase helper = db.getReadableDatabase();
+        helper.update(DatabaseHelper.NEWS_LIST_TABLE, values,
+                    DatabaseHelper.ID_COLUMN + "= ?", new String[]{String.valueOf(newsId)});
     }
 }
