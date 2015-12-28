@@ -47,8 +47,9 @@ public class RecyclerViewFragment extends Fragment implements SwipeRefreshLayout
     private static final String FILTER_STRING = "filterString";
     private static final String EXPANDED_SEARCH_FIELD = "searchStatus";
     private static final String UNAVAILABLE_TOPIC_MSG = "This News Topic Unavailable";
+    private static final String HISTORY_CLEAR_MSG = "History Was Cleared";
     private static boolean searchStatus = true;
-    private static String filterString ;
+    private static String filterString;
     private NewsListAdapter mRecAdapter;
     private SwipeRefreshLayout mSwipeLayout;
     private String mSiteUrl;
@@ -77,14 +78,14 @@ public class RecyclerViewFragment extends Fragment implements SwipeRefreshLayout
         LinearLayoutManager layoutManager = new LinearLayoutManager(getActivity());
         layoutManager.setOrientation(LinearLayoutManager.VERTICAL);
         recyclerList.setLayoutManager(layoutManager);
-        mRecAdapter = new NewsListAdapter(getActivity(),this);
+        mRecAdapter = new NewsListAdapter(getActivity(), this);
         recyclerList.setAdapter(mRecAdapter);
         mNewsListDatabaseHelper = new NewsListDatabaseHelper(getActivity());
-        if (null == savedInstanceState){
+        if (null == savedInstanceState) {
             setNewsList(null);
-        }else {
+        } else {
             filterString = savedInstanceState.getString(FILTER_STRING);
-            searchStatus = savedInstanceState.getBoolean(EXPANDED_SEARCH_FIELD,true);
+            searchStatus = savedInstanceState.getBoolean(EXPANDED_SEARCH_FIELD, true);
             setNewsList(filterString);
         }
         return rootView;
@@ -103,9 +104,18 @@ public class RecyclerViewFragment extends Fragment implements SwipeRefreshLayout
     }
 
     @Override
-    public void onCreateOptionsMenu(Menu menu,MenuInflater inflater) {
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         getActivity().getMenuInflater().inflate(R.menu.menu_main, menu);
         SearchManager searchManager = (SearchManager) getActivity().getSystemService(Context.SEARCH_SERVICE);
+        MenuItem resetHistoryItem = menu.findItem(R.id.action_clear_history);
+        resetHistoryItem.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem item) {
+                ClearVisitsHistory resetHistory = new ClearVisitsHistory();
+                resetHistory.execute();
+                return false;
+            }
+        });
         MenuItem searchItem = menu.findItem(R.id.action_search);
         final SearchView searchView = (SearchView) MenuItemCompat.getActionView(searchItem);
         searchView.setSearchableInfo(searchManager.getSearchableInfo(getActivity().getComponentName()));
@@ -141,14 +151,15 @@ public class RecyclerViewFragment extends Fragment implements SwipeRefreshLayout
         super.onCreateOptionsMenu(menu, inflater);
 
     }
+
     public void setNewsList(String searchText) {
-        if (null == mNewsListDatabaseHelper){
+        if (null == mNewsListDatabaseHelper) {
             mNewsListDatabaseHelper = new NewsListDatabaseHelper(getActivity());
         }
         List<NewsList> newsList = mNewsListDatabaseHelper.getNewsList(mSiteId, searchText);
-        if (0 == newsList.size() && null == searchText ){
+        if (0 == newsList.size() && null == searchText) {
             loadNewsList();
-        }else {
+        } else {
             mRecAdapter.updateList(newsList, searchText);
         }
     }
@@ -158,7 +169,7 @@ public class RecyclerViewFragment extends Fragment implements SwipeRefreshLayout
         mSiteId = id;
     }
 
-    private  void loadNewsList() {
+    private void loadNewsList() {
         if (new TestNetwork(getActivity()).isNetworkAvailable()) {
             NewsListDownloadTask refreshing = new NewsListDownloadTask();
             refreshing.execute();
@@ -199,7 +210,7 @@ public class RecyclerViewFragment extends Fragment implements SwipeRefreshLayout
             List<NewsList> newsList = null;
 
             try {
-                newsList = new NewsListFromXmlParser().getNewsList(mSiteUrl,mSiteId);
+                newsList = new NewsListFromXmlParser().getNewsList(mSiteUrl, mSiteId);
             } catch (URISyntaxException e) {
                 e.printStackTrace();
                 return null;
@@ -210,7 +221,7 @@ public class RecyclerViewFragment extends Fragment implements SwipeRefreshLayout
                 e.printStackTrace();
                 return null;
             }
-            if (null !=newsList){
+            if (null != newsList) {
                 mNewsListDatabaseHelper.addNews(newsList);
             }
             return newsList;
@@ -223,22 +234,21 @@ public class RecyclerViewFragment extends Fragment implements SwipeRefreshLayout
 
         @Override
         protected void onPostExecute(List<NewsList> newsList) {
-            if (null != newsList){
+            if (null != newsList) {
                 setNewsList(null);
-            }else {
+            } else {
                 newsList = new ArrayList<>();
-                mRecAdapter.updateList(newsList,null);
-                Toast.makeText(getActivity(),UNAVAILABLE_TOPIC_MSG,Toast.LENGTH_SHORT).show();
+                mRecAdapter.updateList(newsList, null);
+                Toast.makeText(getActivity(), UNAVAILABLE_TOPIC_MSG, Toast.LENGTH_SHORT).show();
             }
             mSwipeLayout.setRefreshing(false);
         }
     }
 
 
-
-
-    private class MinimizeHtmlPageTask extends AsyncTask<String,Void,String>{
+    private class MinimizeHtmlPageTask extends AsyncTask<String, Void, String> {
         private String primaryUrl;
+
         @Override
         protected String doInBackground(String... params) {
             primaryUrl = params[0];
@@ -249,9 +259,10 @@ public class RecyclerViewFragment extends Fragment implements SwipeRefreshLayout
             }
             return null;
         }
+
         @Override
         protected void onPostExecute(String htmlPageString) {
-            if (null == htmlPageString){
+            if (null == htmlPageString) {
                 htmlPageString = primaryUrl;
             }
             onMinimizingFinishedListener listener = (onMinimizingFinishedListener) getActivity();
@@ -259,7 +270,7 @@ public class RecyclerViewFragment extends Fragment implements SwipeRefreshLayout
         }
     }
 
-    private class SetNewsAsWatchedTask extends AsyncTask<Long,Void,Void>{
+    private class SetNewsAsWatchedTask extends AsyncTask<Long, Void, Void> {
         @Override
         protected Void doInBackground(Long... params) {
             try {
@@ -273,5 +284,18 @@ public class RecyclerViewFragment extends Fragment implements SwipeRefreshLayout
 
     public interface onMinimizingFinishedListener {
         void minimizingHtmlPageCallback(String htmlPageString, String primaryUrl);
+    }
+
+    private class ClearVisitsHistory extends AsyncTask<Void, Void, Void> {
+        @Override
+        protected Void doInBackground(Void... params) {
+            mNewsListDatabaseHelper.clearWatchedDate();
+            mRecAdapter.updateList(mNewsListDatabaseHelper.getNewsList(mSiteId, filterString), filterString);
+            return null;
+        }
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            Toast.makeText(getActivity(), HISTORY_CLEAR_MSG, Toast.LENGTH_SHORT).show();
+        }
     }
 }
