@@ -7,7 +7,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 
 public class DatabaseHelper extends SQLiteOpenHelper {
     public static final String DATABASE_NAME = "newsobserverdb.db";
-    public static final int SCHEMA = 2;
+    public static final int SCHEMA = 3;
     public static final String NEWS_TOPICS_TABLE = "topics";
     public static final String TOPICS_CATEGORY_ID_COLUMN = "category_id";
     public static final String TOPICS_LINK_COLUMN = "link";
