@@ -39,25 +39,30 @@ public class GetImageTaskManager extends AsyncTask<String, Void, Bitmap> {
 
     @Override
     protected Bitmap doInBackground(String... urls) {
-
-        Bitmap myBitmap = ImageCache.getBitmapFromMemCache(urls[0]);
-        if (myBitmap == null) {
-            try {
-                URL url = new URL(urls[0]);
-                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-                connection.setDoInput(true);
-                connection.connect();
-                InputStream input = connection.getInputStream();
-                myBitmap = BitmapFactory.decodeStream(input);
-                if (myBitmap == null) {
-                    myBitmap = BitmapFactory.decodeResource(ctx.getResources() , R.drawable.no_image);
+        Bitmap myBitmap;
+        if (null != urls[0]){
+            myBitmap = ImageCache.getBitmapFromMemCache(urls[0]);
+            if (myBitmap == null) {
+                try {
+                    URL url = new URL(urls[0]);
+                    HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                    connection.setDoInput(true);
+                    connection.connect();
+                    InputStream input = connection.getInputStream();
+                    myBitmap = BitmapFactory.decodeStream(input);
+                    if (myBitmap == null) {
+                        myBitmap = BitmapFactory.decodeResource(ctx.getResources() , R.drawable.no_image);
+                    }
+                    ImageCache.addBitmapToMemoryCache(urls[0], myBitmap);
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
-                ImageCache.addBitmapToMemoryCache(urls[0], myBitmap);
-            } catch (IOException e) {
-                e.printStackTrace();
             }
+        }else {
+            myBitmap = BitmapFactory.decodeResource(ctx.getResources() , R.drawable.no_image);
         }
         return myBitmap;
+
     }
 
     @Override

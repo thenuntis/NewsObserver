@@ -5,6 +5,7 @@ import android.app.Fragment;
 import android.app.SearchManager;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.database.sqlite.SQLiteException;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -19,24 +20,33 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import com.jack.newsobserver.R;
 import com.jack.newsobserver.adapter.NewsListAdapter;
 import com.jack.newsobserver.helper.NewsListDatabaseHelper;
 import com.jack.newsobserver.helper.TestNetwork;
 import com.jack.newsobserver.models.NewsList;
+import com.jack.newsobserver.parser.NewsHtmlPageMinimizer;
 import com.jack.newsobserver.parser.NewsListFromXmlParser;
 import com.jack.newsobserver.util.ImageCache;
 
+import org.xmlpull.v1.XmlPullParserException;
+
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.List;
 
 
-public class RecyclerViewFragment extends Fragment implements SwipeRefreshLayout.OnRefreshListener {
+public class RecyclerViewFragment extends Fragment implements SwipeRefreshLayout.OnRefreshListener,
+        NewsListAdapter.OnSelectedListItemListener {
 
     public static final String TAG = "RecyclerViewFragmentTag";
     private static final String ACTION_SEARCH_HINT = "Search";
     private static final String FILTER_STRING = "filterString";
     private static final String EXPANDED_SEARCH_FIELD = "searchStatus";
+    private static final String UNAVAILABLE_TOPIC_MSG = "This News Topic Unavailable";
     private static boolean searchStatus = true;
     private static String filterString ;
     private NewsListAdapter mRecAdapter;
@@ -67,8 +77,9 @@ public class RecyclerViewFragment extends Fragment implements SwipeRefreshLayout
         LinearLayoutManager layoutManager = new LinearLayoutManager(getActivity());
         layoutManager.setOrientation(LinearLayoutManager.VERTICAL);
         recyclerList.setLayoutManager(layoutManager);
-        mRecAdapter = new NewsListAdapter(getActivity());
+        mRecAdapter = new NewsListAdapter(getActivity(),this);
         recyclerList.setAdapter(mRecAdapter);
+        mNewsListDatabaseHelper = new NewsListDatabaseHelper(getActivity());
         if (null == savedInstanceState){
             setNewsList(null);
         }else {
@@ -130,7 +141,24 @@ public class RecyclerViewFragment extends Fragment implements SwipeRefreshLayout
         super.onCreateOptionsMenu(menu, inflater);
 
     }
-    private void loadNewsList() {
+    public void setNewsList(String searchText) {
+        if (null == mNewsListDatabaseHelper){
+            mNewsListDatabaseHelper = new NewsListDatabaseHelper(getActivity());
+        }
+        List<NewsList> newsList = mNewsListDatabaseHelper.getNewsList(mSiteId, searchText);
+        if (0 == newsList.size() && null == searchText ){
+            loadNewsList();
+        }else {
+            mRecAdapter.updateList(newsList, searchText);
+        }
+    }
+
+    public void setListUrl(String url, long id) {
+        mSiteUrl = url;
+        mSiteId = id;
+    }
+
+    private  void loadNewsList() {
         if (new TestNetwork(getActivity()).isNetworkAvailable()) {
             NewsListDownloadTask refreshing = new NewsListDownloadTask();
             refreshing.execute();
@@ -155,25 +183,37 @@ public class RecyclerViewFragment extends Fragment implements SwipeRefreshLayout
         }
     }
 
-    public void setNewsList(String searchText) {
-        if (null == mNewsListDatabaseHelper){
-            mNewsListDatabaseHelper = new NewsListDatabaseHelper(getActivity());
-        }
-        List<NewsList> newsList = mNewsListDatabaseHelper.getNewsList(mSiteId, searchText);
-        if (0 == newsList.size() && null == searchText ){
-            loadNewsList();
-        }else {
-            mRecAdapter.updateList(newsList,searchText);
-        }
+
+    @Override
+    public void onListItemSelected(NewsList newsList) {
+        SetNewsAsWatchedTask setWatchedTask = new SetNewsAsWatchedTask();
+        setWatchedTask.execute(newsList.getStoryId());
+        MinimizeHtmlPageTask minimizeHtmlPageTask = new MinimizeHtmlPageTask();
+        minimizeHtmlPageTask.execute(newsList.getStoryLink());
     }
 
-    private class NewsListDownloadTask extends AsyncTask<Void, Void, Void> {
+    private class NewsListDownloadTask extends AsyncTask<Void, Void, List<NewsList>> {
 
         @Override
-        protected Void doInBackground(Void... arg0) {
-            List<NewsList> newsList = new NewsListFromXmlParser().getNewsList(mSiteUrl,mSiteId);
-            mNewsListDatabaseHelper.addNews(newsList);
-            return null;
+        protected List<NewsList> doInBackground(Void... arg0) {
+            List<NewsList> newsList = null;
+
+            try {
+                newsList = new NewsListFromXmlParser().getNewsList(mSiteUrl,mSiteId);
+            } catch (URISyntaxException e) {
+                e.printStackTrace();
+                return null;
+            } catch (IOException e) {
+                e.printStackTrace();
+                return null;
+            } catch (XmlPullParserException e) {
+                e.printStackTrace();
+                return null;
+            }
+            if (null !=newsList){
+                mNewsListDatabaseHelper.addNews(newsList);
+            }
+            return newsList;
         }
 
         @Override
@@ -182,14 +222,56 @@ public class RecyclerViewFragment extends Fragment implements SwipeRefreshLayout
         }
 
         @Override
-        protected void onPostExecute(Void result) {
-            setNewsList(null);
+        protected void onPostExecute(List<NewsList> newsList) {
+            if (null != newsList){
+                setNewsList(null);
+            }else {
+                newsList = new ArrayList<>();
+                mRecAdapter.updateList(newsList,null);
+                Toast.makeText(getActivity(),UNAVAILABLE_TOPIC_MSG,Toast.LENGTH_SHORT).show();
+            }
             mSwipeLayout.setRefreshing(false);
         }
     }
-    public void setListUrl(String url, long id) {
-        mSiteUrl = url;
-        mSiteId = id;
+
+
+
+
+    private class MinimizeHtmlPageTask extends AsyncTask<String,Void,String>{
+        private String primaryUrl;
+        @Override
+        protected String doInBackground(String... params) {
+            primaryUrl = params[0];
+            try {
+                return NewsHtmlPageMinimizer.getMinimizedHtml(primaryUrl);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return null;
+        }
+        @Override
+        protected void onPostExecute(String htmlPageString) {
+            if (null == htmlPageString){
+                htmlPageString = primaryUrl;
+            }
+            onMinimizingFinishedListener listener = (onMinimizingFinishedListener) getActivity();
+            listener.minimizingHtmlPageCallback(htmlPageString, primaryUrl);
+        }
     }
 
+    private class SetNewsAsWatchedTask extends AsyncTask<Long,Void,Void>{
+        @Override
+        protected Void doInBackground(Long... params) {
+            try {
+                mNewsListDatabaseHelper.setWatched(params[0]);
+            } catch (SQLiteException e) {
+                e.printStackTrace();
+            }
+            return null;
+        }
+    }
+
+    public interface onMinimizingFinishedListener {
+        void minimizingHtmlPageCallback(String htmlPageString, String primaryUrl);
+    }
 }

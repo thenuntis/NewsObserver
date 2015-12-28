@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="list_item_backColor">#fff</color>
+    <color name="watched_news_color">#a5a5a5</color>
+    <color name="not_watched_news_color">#4e4e4e</color>
 </resources>

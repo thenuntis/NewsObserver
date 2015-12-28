@@ -1,5 +1,7 @@
 package com.jack.newsobserver.models;
 
+import java.util.Date;
+
 public class NewsList {
 
     private long storyId;
@@ -7,8 +9,11 @@ public class NewsList {
     private String storyTitle;
     private String storyLink;
     private String storyAuthor;
-    private String storyPubdate;
+    private Date storyPubdate;
     private String imgUrl;
+    private Date newsLastWatched;
+
+
 
     public long getStoryId() {
         return storyId;
@@ -47,10 +52,10 @@ public class NewsList {
         this.storyAuthor = storyAuthor;
     }
 
-    public String getStoryPubdate() {
+    public Date getStoryPubdate() {
         return storyPubdate;
     }
-    public void setStoryPubdate(String storyPubdate) {
+    public void setStoryPubdate(Date storyPubdate) {
         this.storyPubdate = storyPubdate;
     }
 
@@ -61,4 +66,10 @@ public class NewsList {
         this.imgUrl = imgUrl;
     }
 
+    public Date getNewsLastWatched() {
+        return newsLastWatched;
+    }
+    public void setNewsLastWatched(Date newsLastWatched) {
+        this.newsLastWatched = newsLastWatched;
+    }
 }

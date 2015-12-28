@@ -7,14 +7,28 @@ import org.jsoup.nodes.Element;
 import java.io.IOException;
 
 public class NewsHtmlPageMinimizer {
-    private static final String TAG_MARGIN_STYLE = "style=\"margin: 0 2%;\"";
+    private static final String TAG_MARGIN_STYLE = " style=\"margin: 0 2%;\" ";
+    private static final String TAG_WIDTH_STYLE = " width=\"100%\" ";
+    private static final String TAG_HEAD = "head" ;
+    private static final String TAG_COLFULL = "div.colfull";
+    private static final String TAG_STORY_LEADMEDIA = "div.story-leadmedia";
+    private static final String TAG_PHOTOGALERY="sclt-photogallery";
+    private static final String TAG_STORY_CONTENT = "div.story-content";
+    private static final String TAG_FIGURE_CAPTION = "p.figure-caption";
+    private static final String TAG_DIV_OPEN_WITH_MARGIN = "<div "+TAG_MARGIN_STYLE+">";
+    private static final String TAG_DIV_CLOSE = "</div>";
+    private static final String TAG_ALT = "alt";
+    private static final String TAG_SRC = "src";
+    private static final String TAG_IMG = "img";
+
+
 
     public static String getMinimizedHtml(String url) throws IOException {
         Document htmlDocument = Jsoup.connect(url).get();
-        String htmlHeader = getDocumentData(htmlDocument, "head");
-        String newsHeader = getDocumentData(htmlDocument, "div.colfull");
-        String newsSubHeader = getFilteredSubHeader(getDocumentData(htmlDocument, "div.story-leadmedia"));
-        String newsBody = "<div "+TAG_MARGIN_STYLE+">"+getDocumentData(htmlDocument, "div.story-content")+"</div>";
+        String htmlHeader = getDocumentData(htmlDocument, TAG_HEAD);
+        String newsHeader = getDocumentData(htmlDocument, TAG_COLFULL);
+        String newsSubHeader = getFilteredSubHeader(getDocumentData(htmlDocument, TAG_STORY_LEADMEDIA));
+        String newsBody = TAG_DIV_OPEN_WITH_MARGIN+getDocumentData(htmlDocument, TAG_STORY_CONTENT)+TAG_DIV_CLOSE;
         Document newsHtmlPage = Jsoup.parse(htmlHeader+newsHeader+newsSubHeader+newsBody);
         return String.valueOf(newsHtmlPage);
     }
@@ -28,20 +42,21 @@ public class NewsHtmlPageMinimizer {
         String filteredSubHeaderImageString = "";
         String filteredSubHeaderCaptionString = "";
         Document doc = Jsoup.parse(s);
-        Element subheaderImage = doc.select("img").first();
-        Element subheaderCaption = doc.select("p.figure-caption").first();
+        Element subheaderImage = doc.select(TAG_IMG).first();
+        Element subheaderCaption = doc.select(TAG_FIGURE_CAPTION).first();
         if (null != subheaderImage) {
-            String imgAlt = subheaderImage.attr("alt");
-            String imgSrc = subheaderImage.attr("src");
-            filteredSubHeaderImageString="<img alt=\""+imgAlt+"\" width=\"100%\" src=\""+imgSrc+"\">";
+            String imgAlt = subheaderImage.attr(TAG_ALT);
+            String imgSrc = subheaderImage.attr(TAG_SRC);
+            filteredSubHeaderImageString="<"+TAG_IMG+" "+TAG_ALT+"=\""+imgAlt+"\""+TAG_WIDTH_STYLE+TAG_SRC+"=\""+imgSrc+"\">";
         }
         if (null != subheaderCaption){
             filteredSubHeaderCaptionString = String.valueOf(subheaderCaption);
         }
         if (null == subheaderImage & null == subheaderCaption){
             return s;
+
         }else {
-            return "<div "+TAG_MARGIN_STYLE+">"+filteredSubHeaderImageString+" "+filteredSubHeaderCaptionString+"</div>";
+            return TAG_DIV_OPEN_WITH_MARGIN+filteredSubHeaderImageString+" "+filteredSubHeaderCaptionString+TAG_DIV_CLOSE;
         }
     }
 }

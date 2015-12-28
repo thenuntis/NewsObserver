@@ -16,8 +16,10 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.jack.newsobserver.R;
+import com.jack.newsobserver.fragments.RecyclerViewFragment;
 import com.jack.newsobserver.manager.GetImageTaskManager;
 import com.jack.newsobserver.models.NewsList;
+import com.jack.newsobserver.util.DateTimeUtil;
 
 import java.util.List;
 import java.util.Locale;
@@ -27,17 +29,17 @@ public class NewsListAdapter extends RecyclerView.Adapter<NewsListAdapter.ViewHo
     private final Context mContext;
     private List<NewsList> mNewsList;
     private String mSearchText;
-//    private List<NewsList> mFilteredList = new ArrayList<>();
+    private RecyclerViewFragment fragment;
 
-    public NewsListAdapter(Context mContext) {
+    public NewsListAdapter(Context mContext, RecyclerViewFragment activity) {
         this.mContext = mContext;
+        this.fragment = activity;
     }
 
     public void updateList(List<NewsList> list, String searchText){
         mNewsList = list;
         mSearchText=searchText;
-//        mFilteredList.clear();
-//        mFilteredList.addAll(list);
+
         this.notifyDataSetChanged();
     }
 
@@ -55,19 +57,23 @@ public class NewsListAdapter extends RecyclerView.Adapter<NewsListAdapter.ViewHo
     public void onBindViewHolder(ViewHolder holder, int position) {
         final NewsList newsItem = mNewsList.get(position);
         new GetImageTaskManager(holder,mContext).execute(newsItem.getImgUrl());
+        if (0 == newsItem.getNewsLastWatched().getTime()){
+            holder.nameTxt.setTextColor(mContext.getResources().getColor(R.color.not_watched_news_color));
+        }else{
+            holder.nameTxt.setTextColor(mContext.getResources().getColor(R.color.watched_news_color));
+        }
         if (null == mSearchText) {
             holder.nameTxt.setText(newsItem.getStoryTitle());
         }else {
             holder.nameTxt.setText(highlightedSearchText(newsItem.getStoryTitle()));
         }
-        holder.pubDateTxt.setText(newsItem.getStoryPubdate());
+        holder.pubDateTxt.setText(DateTimeUtil.getStringFromMsec(mContext,newsItem.getStoryPubdate().getTime()));
         holder.authorTxt.setText(newsItem.getStoryAuthor());
         holder.setClickListener(new ViewHolder.NewsListItemClickListener() {
             @Override
-            public void onClick(View v, int position) {
-                String url = newsItem.getStoryLink();
-                OnSelectedLinkListener listener = (OnSelectedLinkListener) mContext;
-                listener.onListItemSelected(url);
+            public void onNewsListItemClick(View v, int position) {
+                OnSelectedListItemListener listener = fragment;
+                listener.onListItemSelected(newsItem);
             }
         });
     }
@@ -87,9 +93,10 @@ public class NewsListAdapter extends RecyclerView.Adapter<NewsListAdapter.ViewHo
         public TextView nameTxt;
         public TextView pubDateTxt;
         public TextView authorTxt;
+
         private NewsListItemClickListener clickListener;
 
-        private ViewHolder(View v) {
+        public ViewHolder(View v) {
             super(v);
             iconImg = (ImageView) v.findViewById(R.id.iconImg);
             indicator = (ProgressBar) v.findViewById(R.id.progress);
@@ -100,8 +107,9 @@ public class NewsListAdapter extends RecyclerView.Adapter<NewsListAdapter.ViewHo
         }
 
         public interface NewsListItemClickListener {
-            void onClick(View v, int position);
+            void onNewsListItemClick(View v, int position);
         }
+
 
         public void setClickListener(NewsListItemClickListener clickListener) {
             this.clickListener = clickListener;
@@ -109,10 +117,11 @@ public class NewsListAdapter extends RecyclerView.Adapter<NewsListAdapter.ViewHo
 
         @Override
         public void onClick(View v) {
-            clickListener.onClick(v, getPosition());
+            clickListener.onNewsListItemClick(v, getPosition());
         }
-
     }
+
+
         private Spannable highlightedSearchText (String text){
             int startPos = text.toLowerCase(Locale.US).indexOf(mSearchText.toLowerCase(Locale.US));
             int endPos = startPos + mSearchText.length();
@@ -125,8 +134,7 @@ public class NewsListAdapter extends RecyclerView.Adapter<NewsListAdapter.ViewHo
         }
 
 
-
-    public interface OnSelectedLinkListener {
-        void onListItemSelected(String url);
+    public interface OnSelectedListItemListener {
+        void onListItemSelected(NewsList newsList);
     }
 }
