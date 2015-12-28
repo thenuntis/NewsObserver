@@ -118,6 +118,8 @@ public class MainActivity extends ActionBarActivity implements
                 return true;
             case R.id.action_search:
                 return true;
+            case R.id.action_clear_history:
+                return true;
             default:
                 return super.onOptionsItemSelected(item);
         }

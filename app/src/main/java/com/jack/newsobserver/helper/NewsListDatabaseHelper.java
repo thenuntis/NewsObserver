@@ -81,6 +81,13 @@ public class NewsListDatabaseHelper {
         values.put(DatabaseHelper.LIST_WATCHED_COLUMN, new Date().getTime());
         SQLiteDatabase helper = db.getReadableDatabase();
         helper.update(DatabaseHelper.NEWS_LIST_TABLE, values,
-                    DatabaseHelper.ID_COLUMN + "= ?", new String[]{String.valueOf(newsId)});
+                DatabaseHelper.ID_COLUMN + "= ?", new String[]{String.valueOf(newsId)});
+    }
+
+    public void clearWatchedDate (){
+        SQLiteDatabase helper = db.getReadableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(DatabaseHelper.LIST_WATCHED_COLUMN, 0);
+        helper.update(DatabaseHelper.NEWS_LIST_TABLE,values,null,null);
     }
 }

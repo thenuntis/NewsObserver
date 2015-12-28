@@ -43,6 +43,9 @@ public class NewsListAdapter extends RecyclerView.Adapter<NewsListAdapter.ViewHo
         this.notifyDataSetChanged();
     }
 
+    public void refreshList(){
+        this.notifyDataSetChanged();
+    }
     public NewsList getItem(int position) {
         return mNewsList.get(position);
     }
@@ -57,6 +60,7 @@ public class NewsListAdapter extends RecyclerView.Adapter<NewsListAdapter.ViewHo
     public void onBindViewHolder(ViewHolder holder, int position) {
         final NewsList newsItem = mNewsList.get(position);
         new GetImageTaskManager(holder,mContext).execute(newsItem.getImgUrl());
+
         if (0 == newsItem.getNewsLastWatched().getTime()){
             holder.nameTxt.setTextColor(mContext.getResources().getColor(R.color.not_watched_news_color));
         }else{
