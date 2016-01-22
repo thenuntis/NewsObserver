@@ -1,5 +1,9 @@
 package com.jack.newsobserver.parser;
 
+import android.util.Log;
+
+import com.jack.newsobserver.util.Constants;
+
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -24,7 +28,7 @@ public class NewsHtmlPageMinimizer {
 
 
     public static String getMinimizedHtml(String url) throws IOException {
-        Document htmlDocument = Jsoup.connect(url).get();
+        Document htmlDocument = Jsoup.connect(url).userAgent(Constants.PARSING_BROWSER).get();
         String htmlHeader = getDocumentData(htmlDocument, TAG_HEAD);
         String newsHeader = getDocumentData(htmlDocument, TAG_COLFULL);
         String newsSubHeader = getFilteredSubHeader(getDocumentData(htmlDocument, TAG_STORY_LEADMEDIA));
@@ -35,7 +39,9 @@ public class NewsHtmlPageMinimizer {
 
 
     private static String getDocumentData(Document doc,String tag) {
+        Log.w("incomingPageData", String.valueOf(String.valueOf(doc).length()));
         Element mainElement = doc.select(tag).first();
+//        Log.w("pageData",String.valueOf(mainElement));
         return String.valueOf(mainElement);
     }
     private static String getFilteredSubHeader(String s){

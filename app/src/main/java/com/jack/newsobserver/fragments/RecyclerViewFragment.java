@@ -290,11 +290,11 @@ public class RecyclerViewFragment extends Fragment implements SwipeRefreshLayout
         @Override
         protected Void doInBackground(Void... params) {
             mNewsListDatabaseHelper.clearWatchedDate();
-            mRecAdapter.updateList(mNewsListDatabaseHelper.getNewsList(mSiteId, filterString), filterString);
             return null;
         }
         @Override
         protected void onPostExecute(Void aVoid) {
+            mRecAdapter.updateList(mNewsListDatabaseHelper.getNewsList(mSiteId, filterString), filterString);
             Toast.makeText(getActivity(), HISTORY_CLEAR_MSG, Toast.LENGTH_SHORT).show();
         }
     }

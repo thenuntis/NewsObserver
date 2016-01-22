@@ -1,6 +1,7 @@
 package com.jack.newsobserver.activity;
 
 
+import android.app.Fragment;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.os.Bundle;
@@ -10,11 +11,13 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarActivity;
 import android.view.MenuItem;
 import android.view.View;
+import android.webkit.WebView;
 
 import com.jack.newsobserver.R;
 import com.jack.newsobserver.fragments.DrawerExpListFragment;
 import com.jack.newsobserver.fragments.RecyclerViewFragment;
 import com.jack.newsobserver.fragments.WebViewFragment;
+import com.jack.newsobserver.util.Constants;
 
 
 public class MainActivity extends ActionBarActivity implements
@@ -27,11 +30,6 @@ public class MainActivity extends ActionBarActivity implements
     private static final String SUBTITLE_KEY = "SUBTITLE";
     private static final String RECENT_LINK_URL_KEY = "LINKURLKEY";
     private static final String RECENT_LINK_ID_KEY = "LINKIDKEY";
-//    private static final String HTML_FEED_URL = "http://www.cbc.ca/rss/";
-    private static final String DEFAULT_URL = "http://www.cbc.ca/cmlink/rss-topstories";
-    private static final String DEFAULT_SUBTITLE = "General News: Top Stories";
-
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,7 +41,7 @@ public class MainActivity extends ActionBarActivity implements
             newsLinkId = savedInstanceState.getLong(RECENT_LINK_ID_KEY);
         }else {
             if (null == newsListUrl){
-                newsListUrl =DEFAULT_URL;
+                newsListUrl = Constants.DEFAULT_URL;
                 newsLinkId = 1;
             }
         }
@@ -70,7 +68,7 @@ public class MainActivity extends ActionBarActivity implements
         mDrawerLayout.setDrawerListener(mDrawerToggle);
         mDrawerToggle.syncState();
         if (null == subTitleString){
-            subTitleString = DEFAULT_SUBTITLE;
+            subTitleString = Constants.DEFAULT_SUBTITLE;
         }
         getSupportActionBar().setSubtitle(subTitleString);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
@@ -96,16 +94,27 @@ public class MainActivity extends ActionBarActivity implements
         } else {
             FragmentManager manager = getFragmentManager();
             if (manager.getBackStackEntryCount()>0){
-                getSupportActionBar().setSubtitle(manager.getBackStackEntryAt(
-                        manager.getBackStackEntryCount()-1).getName());
-                manager.popBackStack();
+                Fragment webViewFragment = manager.findFragmentByTag(WebViewFragment.TAG);
+                if (null != webViewFragment){
+                    WebView webView = (WebView) webViewFragment.getActivity().findViewById(R.id.webView);
+                    if(webView.canGoBack()){
+                        webView.goBack();
+                    }else{
+                        getSupportActionBar().setSubtitle(manager.getBackStackEntryAt(
+                                manager.getBackStackEntryCount() - 1).getName());
+                        manager.popBackStack();
+                        enableDrawerButton();
+                    }
+                }
             }else {
                 this.finish();
             }
         }
     }
 
-@Override
+
+
+    @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         DrawerLayout drawerLayout = (DrawerLayout) findViewById(R.id.main_drawer_layout);
         switch (item.getItemId()){
@@ -151,6 +160,8 @@ public class MainActivity extends ActionBarActivity implements
 
     @Override
     public void minimizingHtmlPageCallback(String htmlPageString, String primaryUrl) {
+
+        disableDrawerButton();
         FragmentManager manager = getFragmentManager();
         FragmentTransaction transaction = manager.beginTransaction();
         transaction.setCustomAnimations(R.anim.enter, R.anim.exit);
@@ -164,6 +175,18 @@ public class MainActivity extends ActionBarActivity implements
         transaction.addToBackStack(subTitleString);
         webViewFragment.setWebViewUrl(htmlPageString,primaryUrl);
         transaction.commit();
+    }
+    private void enableDrawerButton() {
+        getSupportActionBar().setLogo(R.drawable.ic_actionbar_logo);
+        getSupportActionBar().setDisplayUseLogoEnabled(false);
+        getSupportActionBar().setDisplayShowHomeEnabled(false);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+    }
+    private void disableDrawerButton() {
+        getSupportActionBar().setLogo(R.drawable.ic_actionbar_logo);
+        getSupportActionBar().setDisplayUseLogoEnabled(true);
+        getSupportActionBar().setDisplayShowHomeEnabled(true);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(false);
     }
 
 }

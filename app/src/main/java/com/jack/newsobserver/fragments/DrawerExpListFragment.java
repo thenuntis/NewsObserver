@@ -18,13 +18,13 @@ import com.jack.newsobserver.manager.AlertDialogManager;
 import com.jack.newsobserver.models.NewsCategory;
 import com.jack.newsobserver.models.NewsTopic;
 import com.jack.newsobserver.parser.MainUrlHtmlParser;
+import com.jack.newsobserver.util.Constants;
 
 import java.io.IOException;
 
 public class DrawerExpListFragment extends Fragment {
 
     public static final String TAG = "DrawerExpListFragmentTag";
-    private static final String HTML_FEED_URL = "http://www.cbc.ca/rss/";
     private TopicsDatabaseHelper mTopicsDatabaseHelper;
     private DrawerExpListAdapter mDrawerExpListAdapter;
     private ExpandableListView mExpandableListView;
@@ -49,7 +49,7 @@ public class DrawerExpListFragment extends Fragment {
         if (null == savedInstanceState){
             if (new TestNetwork(getActivity()).isNetworkAvailable()) {
                 HtmlDataParseTask parseTask = new HtmlDataParseTask();
-                parseTask.execute(HTML_FEED_URL);
+                parseTask.execute(Constants.HTML_FEED_URL);
             } else{
                 new AlertDialogManager().alertDialogShow(getActivity());
             }

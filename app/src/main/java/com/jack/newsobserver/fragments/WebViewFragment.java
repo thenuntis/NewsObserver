@@ -1,14 +1,13 @@
 package com.jack.newsobserver.fragments;
 
 import android.app.Fragment;
+import android.content.Intent;
+import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
-import android.support.v4.view.GravityCompat;
-import android.support.v4.widget.DrawerLayout;
+import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.WebSettings;
@@ -17,6 +16,10 @@ import android.webkit.WebViewClient;
 import android.widget.ProgressBar;
 
 import com.jack.newsobserver.R;
+import com.jack.newsobserver.parser.NewsHtmlPageMinimizer;
+import com.jack.newsobserver.util.Constants;
+
+import java.io.IOException;
 
 
 public class WebViewFragment extends Fragment {
@@ -36,41 +39,13 @@ public class WebViewFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setRetainInstance(true);
-        setHasOptionsMenu(true);
     }
 
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         mWebViewBar = (ProgressBar) getActivity().findViewById(R.id.webViewBar);
-        mWebView.setWebViewClient(new WebViewClient() {
-            public void onPageFinished(WebView view, String url) {
-                mWebViewBar.setVisibility(View.INVISIBLE);
-            }
-        });
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        DrawerLayout drawerLayout = (DrawerLayout) getActivity().findViewById(R.id.main_drawer_layout);
-        switch (item.getItemId()){
-            case android.R.id.home:
-                if (drawerLayout.isDrawerOpen(GravityCompat.START)){
-                    drawerLayout.closeDrawer(GravityCompat.START);
-                }else {
-                    drawerLayout.openDrawer(GravityCompat.START);
-                }
-                return true;
-            case R.id.action_search:
-                return true;
-            default:
-                return super.onOptionsItemSelected(item);
-        }
-    }
-
-    @Override
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        super.onCreateOptionsMenu(menu, inflater);
+        mWebView.setWebViewClient(new myWebViewClient());
     }
 
     @Override
@@ -85,12 +60,24 @@ public class WebViewFragment extends Fragment {
         }
         if (mNewUrlFlag){
             if (mWebViewBundle == null  ) {
-                mWebView.loadDataWithBaseURL(mSiteUrl,mSiteData,null,null,null);
+                Log.w("WEBVIEW", "FIRST_BLOOD");
+                if(null != savedInstanceState){
+                    Log.w("WEBVIEW", "INSTANCE");
+                    mWebView.restoreState(mWebViewBundle);
+//                    mWebView.restoreState(savedInstanceState);
+                }else {
+                    Log.w("WEBVIEW","ZERO INST");
+                    mWebView.loadDataWithBaseURL("", mSiteData, "text/html", "UTF-8", "");
+                }
             }else {
+                Log.w("WEBVIEW1","ROTATE"+mSiteData);
+                Log.w("WEBVIEW2","ROTATE"+savedInstanceState);
+                Log.w("WEBBUNDLE>>", "ROTATE" + String.valueOf(mWebViewBundle));
                 mWebView.restoreState(mWebViewBundle);
+//                mWebView.restoreState(savedInstanceState);
             }
         }else {
-            mWebView.loadDataWithBaseURL(mSiteUrl,mSiteData,null,null,null);
+            mWebView.loadDataWithBaseURL(null, mSiteData, null, null, null);
         }
 
         return rootView;
@@ -106,10 +93,53 @@ public class WebViewFragment extends Fragment {
 
     @Override
     public void onPause() {
+
         super.onPause();
         mNewUrlFlag = true;
         mWebViewBundle =new Bundle();
+        Log.w("WEB_PAUSE", String.valueOf(mWebViewBundle));
         mWebView.saveState(mWebViewBundle);
 
     }
+
+    private class myWebViewClient extends WebViewClient {
+        @Override
+        public void onPageFinished(WebView view, String url) {
+            mWebViewBar.setVisibility(View.INVISIBLE);
+        }
+
+        @Override
+        public boolean shouldOverrideUrlLoading(WebView view, String url) {
+            if(Uri.parse(url).getHost().contains(Constants.MAIN_HOST_NAME)) {
+                mSiteUrl=url;
+                MinimizeHtmlPageTask minimizeHtmlPageTask = new MinimizeHtmlPageTask();
+                minimizeHtmlPageTask.execute(url);
+                return true;
+            }
+            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+            startActivity(intent);
+            return true;
+        }
+    }
+    private class MinimizeHtmlPageTask extends AsyncTask<String, Void, Void> {
+        private String url;
+
+        @Override
+        protected Void doInBackground(String... params) {
+            url = params[0];
+            try {
+                mSiteData=NewsHtmlPageMinimizer.getMinimizedHtml(url);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void v) {
+            mWebView.loadDataWithBaseURL(null, mSiteData, null, null, null);
+        }
+    }
+
 }
+
