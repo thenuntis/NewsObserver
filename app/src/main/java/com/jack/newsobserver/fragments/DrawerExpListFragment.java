@@ -18,13 +18,14 @@ import com.jack.newsobserver.manager.AlertDialogManager;
 import com.jack.newsobserver.models.NewsCategory;
 import com.jack.newsobserver.models.NewsTopic;
 import com.jack.newsobserver.parser.MainUrlHtmlParser;
+import com.jack.newsobserver.util.Constants;
 
 import java.io.IOException;
 
 public class DrawerExpListFragment extends Fragment {
 
     public static final String TAG = "DrawerExpListFragmentTag";
-    private static final String HTML_FEED_URL = "http://www.cbc.ca/rss/";
+    private static final String GROUP_TO_EXPAND = "groupNumber";
     private TopicsDatabaseHelper mTopicsDatabaseHelper;
     private DrawerExpListAdapter mDrawerExpListAdapter;
     private ExpandableListView mExpandableListView;
@@ -49,14 +50,21 @@ public class DrawerExpListFragment extends Fragment {
         if (null == savedInstanceState){
             if (new TestNetwork(getActivity()).isNetworkAvailable()) {
                 HtmlDataParseTask parseTask = new HtmlDataParseTask();
-                parseTask.execute(HTML_FEED_URL);
+                parseTask.execute(Constants.HTML_FEED_URL);
             } else{
                 new AlertDialogManager().alertDialogShow(getActivity());
             }
         }else {
+            mRecentGroupIndex=savedInstanceState.getInt(GROUP_TO_EXPAND);
             initDrawerExpandableList();
         }
         return rootView;
+    }
+
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        outState.putInt(GROUP_TO_EXPAND, mRecentGroupIndex);
     }
 
     private class HtmlDataParseTask extends AsyncTask<String,Void,Void>{
@@ -90,13 +98,20 @@ public class DrawerExpListFragment extends Fragment {
         mExpandableListView.setOnGroupExpandListener(new ExpandableListView.OnGroupExpandListener() {
             @Override
             public void onGroupExpand(int groupPosition) {
-                if (-1 != mRecentGroupIndex && groupPosition == mRecentGroupIndex){
+                if (-1 != mRecentGroupIndex && groupPosition == mRecentGroupIndex) {
                     int index = mExpandableListView.getFlatListPosition(ExpandableListView
                             .getPackedPositionForChild(mRecentGroupIndex, mRecentChildIndex));
                     mExpandableListView.setItemChecked(index, true);
-               }
+                }
             }
         });
+        if (-1 == mRecentGroupIndex) {
+            mRecentGroupIndex=mRecentChildIndex=Constants.DEFAULT_DRAWER_EXPAND_VALUE;
+            int index = mExpandableListView.getFlatListPosition(ExpandableListView
+                    .getPackedPositionForChild(mRecentGroupIndex, mRecentChildIndex));
+            mExpandableListView.setItemChecked(index, true);
+        }
+        mExpandableListView.expandGroup(mRecentGroupIndex);
         mExpandableListView.setOnChildClickListener(new ExpandableListView.OnChildClickListener() {
             @Override
             public boolean onChildClick(ExpandableListView parent, View v, int groupPosition, int childPosition, long id) {
@@ -112,6 +127,7 @@ public class DrawerExpListFragment extends Fragment {
                 return false;
             }
         });
+
         return mDrawerExpListAdapter;
     }
 

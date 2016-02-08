@@ -39,7 +39,6 @@ public class NewsListAdapter extends RecyclerView.Adapter<NewsListAdapter.ViewHo
     public void updateList(List<NewsList> list, String searchText){
         mNewsList = list;
         mSearchText=searchText;
-
         this.notifyDataSetChanged();
     }
 

@@ -9,7 +9,9 @@ import android.database.sqlite.SQLiteException;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.v4.view.GravityCompat;
 import android.support.v4.view.MenuItemCompat;
+import android.support.v4.widget.DrawerLayout;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -20,14 +22,15 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Toast;
 
 import com.jack.newsobserver.R;
 import com.jack.newsobserver.adapter.NewsListAdapter;
 import com.jack.newsobserver.helper.NewsListDatabaseHelper;
 import com.jack.newsobserver.helper.TestNetwork;
+import com.jack.newsobserver.manager.HtmlPageManager;
 import com.jack.newsobserver.models.NewsList;
-import com.jack.newsobserver.parser.NewsHtmlPageMinimizer;
 import com.jack.newsobserver.parser.NewsListFromXmlParser;
 import com.jack.newsobserver.util.ImageCache;
 
@@ -37,7 +40,6 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
-
 
 public class RecyclerViewFragment extends Fragment implements SwipeRefreshLayout.OnRefreshListener,
         NewsListAdapter.OnSelectedListItemListener {
@@ -128,6 +130,7 @@ public class RecyclerViewFragment extends Fragment implements SwipeRefreshLayout
                 searchStatus = searchView.isIconified();
             }
         });
+
         searchView.setOnCloseListener(new SearchView.OnCloseListener() {
             @Override
             public boolean onClose() {
@@ -149,7 +152,21 @@ public class RecyclerViewFragment extends Fragment implements SwipeRefreshLayout
             }
         });
         super.onCreateOptionsMenu(menu, inflater);
+    }
 
+    @Override
+    public void onPrepareOptionsMenu(Menu menu) {
+        DrawerLayout drawerLayout = (DrawerLayout) getActivity().findViewById(R.id.main_drawer_layout);
+        MenuItem searchItem = menu.findItem(R.id.action_search);
+        searchItem.setVisible(!drawerLayout.isDrawerOpen(GravityCompat.START));
+        final SearchView searchView = (SearchView) MenuItemCompat.getActionView(searchItem);
+        if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
+            if(searchView.hasFocus()){
+                searchView.clearFocus();
+                ((InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE))
+                        .hideSoftInputFromWindow(getActivity().getWindow().getDecorView().getWindowToken(), 0);
+            }
+        }
     }
 
     public void setNewsList(String searchText) {
@@ -194,7 +211,6 @@ public class RecyclerViewFragment extends Fragment implements SwipeRefreshLayout
         }
     }
 
-
     @Override
     public void onListItemSelected(NewsList newsList) {
         SetNewsAsWatchedTask setWatchedTask = new SetNewsAsWatchedTask();
@@ -208,7 +224,6 @@ public class RecyclerViewFragment extends Fragment implements SwipeRefreshLayout
         @Override
         protected List<NewsList> doInBackground(Void... arg0) {
             List<NewsList> newsList = null;
-
             try {
                 newsList = new NewsListFromXmlParser().getNewsList(mSiteUrl, mSiteId);
             } catch (URISyntaxException e) {
@@ -253,7 +268,7 @@ public class RecyclerViewFragment extends Fragment implements SwipeRefreshLayout
         protected String doInBackground(String... params) {
             primaryUrl = params[0];
             try {
-                return NewsHtmlPageMinimizer.getMinimizedHtml(primaryUrl);
+                return HtmlPageManager.getHtmlPage(getActivity(), primaryUrl);
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -262,9 +277,6 @@ public class RecyclerViewFragment extends Fragment implements SwipeRefreshLayout
 
         @Override
         protected void onPostExecute(String htmlPageString) {
-            if (null == htmlPageString) {
-                htmlPageString = primaryUrl;
-            }
             onMinimizingFinishedListener listener = (onMinimizingFinishedListener) getActivity();
             listener.minimizingHtmlPageCallback(htmlPageString, primaryUrl);
         }
@@ -290,11 +302,11 @@ public class RecyclerViewFragment extends Fragment implements SwipeRefreshLayout
         @Override
         protected Void doInBackground(Void... params) {
             mNewsListDatabaseHelper.clearWatchedDate();
-            mRecAdapter.updateList(mNewsListDatabaseHelper.getNewsList(mSiteId, filterString), filterString);
             return null;
         }
         @Override
         protected void onPostExecute(Void aVoid) {
+            mRecAdapter.updateList(mNewsListDatabaseHelper.getNewsList(mSiteId, filterString), filterString);
             Toast.makeText(getActivity(), HISTORY_CLEAR_MSG, Toast.LENGTH_SHORT).show();
         }
     }

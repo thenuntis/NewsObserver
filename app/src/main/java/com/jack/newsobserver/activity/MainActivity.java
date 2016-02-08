@@ -3,11 +3,12 @@ package com.jack.newsobserver.activity;
 
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
+import android.content.res.Configuration;
 import android.os.Bundle;
-import android.support.v4.app.ActionBarDrawerToggle;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarActivity;
+import android.support.v7.app.ActionBarDrawerToggle;
 import android.view.MenuItem;
 import android.view.View;
 
@@ -15,23 +16,21 @@ import com.jack.newsobserver.R;
 import com.jack.newsobserver.fragments.DrawerExpListFragment;
 import com.jack.newsobserver.fragments.RecyclerViewFragment;
 import com.jack.newsobserver.fragments.WebViewFragment;
+import com.jack.newsobserver.manager.HtmlPageManager;
+import com.jack.newsobserver.util.Constants;
 
 
 public class MainActivity extends ActionBarActivity implements
         DrawerExpListFragment.onSelectedExpListListener,RecyclerViewFragment.onMinimizingFinishedListener {
 
     private DrawerLayout mDrawerLayout;
+    private ActionBarDrawerToggle mDrawerToggle;
     private static String subTitleString;
     private static String newsListUrl;
     private static long newsLinkId;
     private static final String SUBTITLE_KEY = "SUBTITLE";
     private static final String RECENT_LINK_URL_KEY = "LINKURLKEY";
     private static final String RECENT_LINK_ID_KEY = "LINKIDKEY";
-//    private static final String HTML_FEED_URL = "http://www.cbc.ca/rss/";
-    private static final String DEFAULT_URL = "http://www.cbc.ca/cmlink/rss-topstories";
-    private static final String DEFAULT_SUBTITLE = "General News: Top Stories";
-
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,11 +42,11 @@ public class MainActivity extends ActionBarActivity implements
             newsLinkId = savedInstanceState.getLong(RECENT_LINK_ID_KEY);
         }else {
             if (null == newsListUrl){
-                newsListUrl =DEFAULT_URL;
+                newsListUrl = Constants.DEFAULT_URL;
                 newsLinkId = 1;
             }
         }
-        FragmentManager manager = getFragmentManager();
+        final FragmentManager manager = getFragmentManager();
         if (null == manager.findFragmentByTag(RecyclerViewFragment.TAG)){
             FragmentTransaction transaction = manager.beginTransaction();
             RecyclerViewFragment recyclerViewFragment = new RecyclerViewFragment();
@@ -56,26 +55,38 @@ public class MainActivity extends ActionBarActivity implements
             transaction.commit();
         }
         mDrawerLayout=(DrawerLayout) findViewById(R.id.main_drawer_layout);
-        ActionBarDrawerToggle mDrawerToggle = new ActionBarDrawerToggle(
+        mDrawerToggle = new ActionBarDrawerToggle(
                 this,
                 mDrawerLayout,
-                R.drawable.ic_drawer,
                 R.string.navigation_drawer_open,
                 R.string.navigation_drawer_close) {
             public void onDrawerClosed(View view) {
+                invalidateOptionsMenu();
             }
             public void onDrawerOpened(View drawerView) {
+                invalidateOptionsMenu();
             }
         };
         mDrawerLayout.setDrawerListener(mDrawerToggle);
-        mDrawerToggle.syncState();
+
         if (null == subTitleString){
-            subTitleString = DEFAULT_SUBTITLE;
+            subTitleString = Constants.DEFAULT_SUBTITLE;
         }
         getSupportActionBar().setSubtitle(subTitleString);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setHomeButtonEnabled(true);
 
+    }
+
+    @Override
+    protected void onPostCreate(Bundle savedInstanceState) {
+        super.onPostCreate(savedInstanceState);
+        mDrawerToggle.syncState();
+    }
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        mDrawerToggle.onConfigurationChanged(newConfig);
     }
 
     @Override
@@ -96,24 +107,33 @@ public class MainActivity extends ActionBarActivity implements
         } else {
             FragmentManager manager = getFragmentManager();
             if (manager.getBackStackEntryCount()>0){
-                getSupportActionBar().setSubtitle(manager.getBackStackEntryAt(
-                        manager.getBackStackEntryCount()-1).getName());
-                manager.popBackStack();
+                WebViewFragment webViewFragment = (WebViewFragment) manager.findFragmentByTag(WebViewFragment.TAG);
+                if (null != webViewFragment){
+                    if(webViewFragment.canGoPreviousPage()) {
+                        webViewFragment.goPreviousPage();
+                    }else{
+                        getSupportActionBar().setSubtitle(manager.getBackStackEntryAt(
+                                manager.getBackStackEntryCount() - 1).getName());
+                        HtmlPageManager.clearStoredHtmlPages(this);
+                        manager.popBackStack();
+                        enableDrawer();
+                    }
+                }
             }else {
                 this.finish();
             }
         }
     }
 
-@Override
+    @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        DrawerLayout drawerLayout = (DrawerLayout) findViewById(R.id.main_drawer_layout);
+        mDrawerLayout = (DrawerLayout) findViewById(R.id.main_drawer_layout);
         switch (item.getItemId()){
             case android.R.id.home:
-                if (drawerLayout.isDrawerOpen(GravityCompat.START)){
-                    drawerLayout.closeDrawer(GravityCompat.START);
+                if (mDrawerLayout.isDrawerOpen(GravityCompat.START)){
+                    mDrawerLayout.closeDrawer(GravityCompat.START);
                 }else {
-                    drawerLayout.openDrawer(GravityCompat.START);
+                    mDrawerLayout.openDrawer(GravityCompat.START);
                 }
                 return true;
             case R.id.action_search:
@@ -124,6 +144,7 @@ public class MainActivity extends ActionBarActivity implements
                 return super.onOptionsItemSelected(item);
         }
     }
+
     @Override
     public void onExpandableChildItemClick(String title, String url, long id) {
         subTitleString = title;
@@ -151,19 +172,33 @@ public class MainActivity extends ActionBarActivity implements
 
     @Override
     public void minimizingHtmlPageCallback(String htmlPageString, String primaryUrl) {
+
+        disableDrawer();
         FragmentManager manager = getFragmentManager();
         FragmentTransaction transaction = manager.beginTransaction();
         transaction.setCustomAnimations(R.anim.enter, R.anim.exit);
         WebViewFragment webViewFragment = (WebViewFragment) manager.findFragmentByTag(WebViewFragment.TAG);
-        if (webViewFragment != null) {
-            webViewFragment.setWebViewUrl(htmlPageString,primaryUrl);
-        }else {
+        if (null == webViewFragment  ) {
             webViewFragment = new WebViewFragment();
         }
         transaction.replace(R.id.list_view_fragment, webViewFragment, WebViewFragment.TAG);
         transaction.addToBackStack(subTitleString);
-        webViewFragment.setWebViewUrl(htmlPageString,primaryUrl);
+        webViewFragment.setWebViewUrl(htmlPageString, primaryUrl);
         transaction.commit();
+    }
+    private void enableDrawer() {
+        mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
+        getSupportActionBar().setLogo(R.drawable.ic_actionbar_logo);
+        getSupportActionBar().setDisplayUseLogoEnabled(false);
+        getSupportActionBar().setDisplayShowHomeEnabled(false);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+    }
+    private void disableDrawer() {
+        mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
+        getSupportActionBar().setLogo(R.drawable.ic_actionbar_logo);
+        getSupportActionBar().setDisplayUseLogoEnabled(true);
+        getSupportActionBar().setDisplayShowHomeEnabled(true);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(false);
     }
 
 }
