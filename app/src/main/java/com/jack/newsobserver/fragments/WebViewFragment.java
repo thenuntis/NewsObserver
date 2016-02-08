@@ -43,6 +43,7 @@ public class WebViewFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        mHistoryList = new ArrayList<>();
         setRetainInstance(true);
     }
 
@@ -52,13 +53,16 @@ public class WebViewFragment extends Fragment {
         mWebView = (WebView) rootView.findViewById(R.id.webView);
         setWebViewSettings();
         Bundle mSavedBundle = getArguments();
-        mHistoryList=mSavedBundle.getStringArrayList(HISTORY_LIST);
+        if (null == mHistoryList){
+            mHistoryList=mSavedBundle.getStringArrayList(HISTORY_LIST);
+        }
         mScrollPositionY = mSavedBundle.getFloat(SCROLL_VALUE);
         mWebView.loadDataWithBaseURL(mSiteUrl, mSiteData, "text/html", "UTF-8", null);
-        if (null == mHistoryList){
-            mHistoryList = new ArrayList<>();
+        if(mHistoryList.isEmpty()){
             mHistoryList.add(mSiteUrl);
         }
+
+
         return rootView;
     }
 
@@ -80,6 +84,7 @@ public class WebViewFragment extends Fragment {
     @Override
     public void onSaveInstanceState(Bundle outState) {
         getArguments().putFloat(SCROLL_VALUE, calcScrollPosition());
+        getArguments().putStringArrayList(HISTORY_LIST, mHistoryList);
 
     }
 
