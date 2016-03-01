@@ -1,16 +1,52 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <RelativeLayout
+        android:id="@+id/drawer_favorite"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:clickable="true"
+        android:paddingLeft="10dp"
+        android:paddingTop="8dp"
+        android:paddingBottom="8dp">
+
+        <TextView
+            android:id="@+id/drawer_favorite_text"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
+            android:gravity="center"
+            android:text="@string/menu_title_favorites"
+            android:textColor="@android:color/black"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+        <ImageView
+            android:id="@+id/drawer_favorite_image"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentRight="true"
+            android:contentDescription="@string/image_description"
+            android:src="@android:drawable/btn_star_big_on" />
+
+    </RelativeLayout>
+
+
     <ExpandableListView
         android:id="@+id/drawer_ltr_expListView"
         android:layout_width="@dimen/navigation_drawer_width"
         android:layout_height="match_parent"
         android:layout_gravity="start"
-        android:groupIndicator="@drawable/group_indicator_img"
+        android:background="#FFF"
         android:choiceMode="singleChoice"
         android:divider="@android:color/transparent"
         android:dividerHeight="1dp"
-        android:listSelector="@drawable/expandable_child_highlight"
-        android:background="#FFF"/>
-</FrameLayout>
+        android:groupIndicator="@drawable/group_indicator_img"
+        android:listSelector="@drawable/expandable_child_highlight" />
+
+</LinearLayout>

@@ -35,9 +35,9 @@ public class HtmlPageManager {
         }
     }
 
-    public static String getHtmlPageFileLocalPath(Context context, String url)throws IOException{
+    public static String getHtmlPageFileLocalPath(Context context, String url) throws IOException {
         mContext = context;
-        return "file:///"+getHtmlPageFile(url).getAbsolutePath();
+        return "file:///" + getHtmlPageFile(url).getAbsolutePath();
     }
 
     private static File getHtmlPageFile(String url) throws IOException {

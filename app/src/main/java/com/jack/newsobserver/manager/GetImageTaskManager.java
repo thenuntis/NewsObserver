@@ -24,7 +24,7 @@ public class GetImageTaskManager extends AsyncTask<String, Void, Bitmap> {
     private Context ctx;
 
     public GetImageTaskManager(NewsListAdapter.ViewHolder holder, Context context) {
-        this.ctx=context;
+        this.ctx = context;
         this.imgIcon = holder.iconImg;
         this.bar = holder.indicator;
     }
@@ -40,7 +40,7 @@ public class GetImageTaskManager extends AsyncTask<String, Void, Bitmap> {
     @Override
     protected Bitmap doInBackground(String... urls) {
         Bitmap myBitmap;
-        if (null != urls[0]){
+        if (null != urls[0]) {
             myBitmap = ImageCache.getBitmapFromMemCache(urls[0]);
             if (myBitmap == null) {
                 try {
@@ -51,15 +51,15 @@ public class GetImageTaskManager extends AsyncTask<String, Void, Bitmap> {
                     InputStream input = connection.getInputStream();
                     myBitmap = BitmapFactory.decodeStream(input);
                     if (myBitmap == null) {
-                        myBitmap = BitmapFactory.decodeResource(ctx.getResources() , R.drawable.no_image);
+                        myBitmap = BitmapFactory.decodeResource(ctx.getResources(), R.drawable.no_image);
                     }
                     ImageCache.addBitmapToMemoryCache(urls[0], myBitmap);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
             }
-        }else {
-            myBitmap = BitmapFactory.decodeResource(ctx.getResources() , R.drawable.no_image);
+        } else {
+            myBitmap = BitmapFactory.decodeResource(ctx.getResources(), R.drawable.no_image);
         }
         return myBitmap;
 

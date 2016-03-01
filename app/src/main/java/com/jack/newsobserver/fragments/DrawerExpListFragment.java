@@ -46,18 +46,26 @@ public class DrawerExpListFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.drawer_explist_fragment, container, false);
-        mExpandableListView = (ExpandableListView)rootView.findViewById(R.id.drawer_ltr_expListView);
-        if (null == savedInstanceState){
+        mExpandableListView = (ExpandableListView) rootView.findViewById(R.id.drawer_ltr_expListView);
+        if (null == savedInstanceState) {
             if (new TestNetwork(getActivity()).isNetworkAvailable()) {
                 HtmlDataParseTask parseTask = new HtmlDataParseTask();
                 parseTask.execute(Constants.HTML_FEED_URL);
-            } else{
+            } else {
                 new AlertDialogManager().alertDialogShow(getActivity());
             }
-        }else {
-            mRecentGroupIndex=savedInstanceState.getInt(GROUP_TO_EXPAND);
+        } else {
+            mRecentGroupIndex = savedInstanceState.getInt(GROUP_TO_EXPAND);
             initDrawerExpandableList();
         }
+        final View favoriteView = rootView.findViewById(R.id.drawer_favorite);
+        favoriteView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onFavoritesClickListener listener = (onFavoritesClickListener) getActivity();
+                listener.onDrawerFavoritesItemClick(Constants.FAVORITE_NEWS_TITLE,-1);
+            }
+        });
         return rootView;
     }
 
@@ -67,20 +75,21 @@ public class DrawerExpListFragment extends Fragment {
         outState.putInt(GROUP_TO_EXPAND, mRecentGroupIndex);
     }
 
-    private class HtmlDataParseTask extends AsyncTask<String,Void,Void>{
+    private class HtmlDataParseTask extends AsyncTask<String, Void, Void> {
         @Override
         protected Void doInBackground(String... params) {
             try {
-                if (null == mTopicsDatabaseHelper){
-                    mTopicsDatabaseHelper=new TopicsDatabaseHelper(getActivity());
+                if (null == mTopicsDatabaseHelper) {
+                    mTopicsDatabaseHelper = new TopicsDatabaseHelper(getActivity());
                 }
                 mTopicsDatabaseHelper.addCategoryAndRelatedTopics(MainUrlHtmlParser
-                                                                .startParsingUrl(params[0]));
+                        .startParsingUrl(params[0]));
             } catch (IOException e) {
                 e.printStackTrace();
             }
             return null;
         }
+
         @Override
         protected void onPostExecute(Void aVoid) {
             initDrawerExpandableList().notifyDataSetChanged();
@@ -89,8 +98,8 @@ public class DrawerExpListFragment extends Fragment {
 
     private DrawerExpListAdapter initDrawerExpandableList() {
         setDrawerListGroupIndicator();
-        if (null == mTopicsDatabaseHelper){
-            mTopicsDatabaseHelper=new TopicsDatabaseHelper(getActivity());
+        if (null == mTopicsDatabaseHelper) {
+            mTopicsDatabaseHelper = new TopicsDatabaseHelper(getActivity());
         }
         mDrawerExpListAdapter = new DrawerExpListAdapter(getActivity(),
                 mTopicsDatabaseHelper.getCategoriesWithRelatedTopics());
@@ -106,7 +115,7 @@ public class DrawerExpListFragment extends Fragment {
             }
         });
         if (-1 == mRecentGroupIndex) {
-            mRecentGroupIndex=mRecentChildIndex=Constants.DEFAULT_DRAWER_EXPAND_VALUE;
+            mRecentGroupIndex = mRecentChildIndex = Constants.DEFAULT_DRAWER_EXPAND_VALUE;
             int index = mExpandableListView.getFlatListPosition(ExpandableListView
                     .getPackedPositionForChild(mRecentGroupIndex, mRecentChildIndex));
             mExpandableListView.setItemChecked(index, true);
@@ -134,18 +143,20 @@ public class DrawerExpListFragment extends Fragment {
     private void setDrawerListGroupIndicator() {
         float density = this.getResources().getDisplayMetrics().density;
         int widthExpList = mExpandableListView.getLayoutParams().width;
-        int pxEnd = (int) (widthExpList - (10*density));
-        int pxStart = (int) (widthExpList - (60*density));
+        int pxEnd = (int) (widthExpList - (10 * density));
+        int pxStart = (int) (widthExpList - (60 * density));
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN_MR2) {
-            mExpandableListView.setIndicatorBounds(pxStart,pxEnd);
+            mExpandableListView.setIndicatorBounds(pxStart, pxEnd);
         } else {
-            mExpandableListView.setIndicatorBoundsRelative(pxStart,pxEnd);
+            mExpandableListView.setIndicatorBoundsRelative(pxStart, pxEnd);
         }
     }
 
-    public interface onSelectedExpListListener{
+    public interface onSelectedExpListListener {
         void onExpandableChildItemClick(String title, String url, long id);
     }
 
-
+    public interface onFavoritesClickListener {
+        void onDrawerFavoritesItemClick(String title, long newsListId);
+    }
 }

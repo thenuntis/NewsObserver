@@ -1,18 +1,19 @@
 <resources>
     <string name="app_name">News Observer</string>
     <string name="action_settings">Clear Visits History</string>
-    <string name="imgDescr">image</string>
-    <string name="dialogErrorTitle">ERROR</string>
-    <string name="dialogErrorMsg">Internet Connection Unavailable. Please Connect Your Device to Internet</string>
-    <string name="dialogErrorPositiveRetryBtn">RETRY</string>
-    <string name="dialogErrorNegativeBtn">CANCEL</string>
-    <string name="dialogErrorPositiveOkBtn">OK</string>
+    <string name="image_description">image</string>
+    <string name="dialog_error_title">ERROR</string>
+    <string name="dialog_error_message">Internet Connection Unavailable. Please Connect Your Device to Internet</string>
+    <string name="dialog_error_retry_btn">Retry</string>
+    <string name="dialog_error_negative_btn">Cancel</string>
+    <string name="dialog_error_ok_btn">OK</string>
 
-    <string name="action_main">THIS</string>
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
 
-    <string name="action_example">Example action</string>
     <string name="searchable_label">Search</string>
+    <string name="share_button_description">share this</string>
+    <string name="menu_title_favorites">Favorites</string>
+
 
 </resources>

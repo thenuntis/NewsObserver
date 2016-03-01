@@ -3,7 +3,9 @@ package com.jack.newsobserver.activity;
 
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
+import android.content.Intent;
 import android.content.res.Configuration;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
@@ -16,15 +18,20 @@ import com.jack.newsobserver.R;
 import com.jack.newsobserver.fragments.DrawerExpListFragment;
 import com.jack.newsobserver.fragments.RecyclerViewFragment;
 import com.jack.newsobserver.fragments.WebViewFragment;
+import com.jack.newsobserver.helper.NewsListDatabaseHelper;
+import com.jack.newsobserver.interfaces.OnFavoriteCheckChangeListener;
+import com.jack.newsobserver.interfaces.OnShareButtonClickListener;
 import com.jack.newsobserver.manager.HtmlPageManager;
 import com.jack.newsobserver.util.Constants;
 
 
 public class MainActivity extends ActionBarActivity implements
-        DrawerExpListFragment.onSelectedExpListListener,RecyclerViewFragment.onMinimizingFinishedListener {
+        DrawerExpListFragment.onSelectedExpListListener, RecyclerViewFragment.onMinimizingFinishedListener,
+        DrawerExpListFragment.onFavoritesClickListener, OnShareButtonClickListener, OnFavoriteCheckChangeListener {
 
     private DrawerLayout mDrawerLayout;
     private ActionBarDrawerToggle mDrawerToggle;
+    private boolean mFavoriteFlag;
     private static String subTitleString;
     private static String newsListUrl;
     private static long newsLinkId;
@@ -36,25 +43,25 @@ public class MainActivity extends ActionBarActivity implements
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        if (null != savedInstanceState){
-            subTitleString =savedInstanceState.getString(SUBTITLE_KEY);
-            newsListUrl =savedInstanceState.getString(RECENT_LINK_URL_KEY);
+        if (null != savedInstanceState) {
+            subTitleString = savedInstanceState.getString(SUBTITLE_KEY);
+            newsListUrl = savedInstanceState.getString(RECENT_LINK_URL_KEY);
             newsLinkId = savedInstanceState.getLong(RECENT_LINK_ID_KEY);
-        }else {
-            if (null == newsListUrl){
+        } else {
+            if (null == newsListUrl) {
                 newsListUrl = Constants.DEFAULT_URL;
                 newsLinkId = 1;
             }
         }
         final FragmentManager manager = getFragmentManager();
-        if (null == manager.findFragmentByTag(RecyclerViewFragment.TAG)){
+        if (null == manager.findFragmentByTag(RecyclerViewFragment.TAG)) {
             FragmentTransaction transaction = manager.beginTransaction();
             RecyclerViewFragment recyclerViewFragment = new RecyclerViewFragment();
             transaction.add(R.id.list_view_fragment, recyclerViewFragment, RecyclerViewFragment.TAG);
             recyclerViewFragment.setListUrl(newsListUrl, newsLinkId);
             transaction.commit();
         }
-        mDrawerLayout=(DrawerLayout) findViewById(R.id.main_drawer_layout);
+        mDrawerLayout = (DrawerLayout) findViewById(R.id.main_drawer_layout);
         mDrawerToggle = new ActionBarDrawerToggle(
                 this,
                 mDrawerLayout,
@@ -63,13 +70,14 @@ public class MainActivity extends ActionBarActivity implements
             public void onDrawerClosed(View view) {
                 invalidateOptionsMenu();
             }
+
             public void onDrawerOpened(View drawerView) {
                 invalidateOptionsMenu();
             }
         };
         mDrawerLayout.setDrawerListener(mDrawerToggle);
 
-        if (null == subTitleString){
+        if (null == subTitleString) {
             subTitleString = Constants.DEFAULT_SUBTITLE;
         }
         getSupportActionBar().setSubtitle(subTitleString);
@@ -83,6 +91,7 @@ public class MainActivity extends ActionBarActivity implements
         super.onPostCreate(savedInstanceState);
         mDrawerToggle.syncState();
     }
+
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
@@ -98,7 +107,6 @@ public class MainActivity extends ActionBarActivity implements
     }
 
 
-
     @Override
     public void onBackPressed() {
         mDrawerLayout = (DrawerLayout) findViewById(R.id.main_drawer_layout);
@@ -106,12 +114,12 @@ public class MainActivity extends ActionBarActivity implements
             mDrawerLayout.closeDrawer(GravityCompat.START);
         } else {
             FragmentManager manager = getFragmentManager();
-            if (manager.getBackStackEntryCount()>0){
+            if (manager.getBackStackEntryCount() > 0) {
                 WebViewFragment webViewFragment = (WebViewFragment) manager.findFragmentByTag(WebViewFragment.TAG);
-                if (null != webViewFragment){
-                    if(webViewFragment.canGoPreviousPage()) {
+                if (null != webViewFragment) {
+                    if (webViewFragment.canGoPreviousPage()) {
                         webViewFragment.goPreviousPage();
-                    }else{
+                    } else {
                         getSupportActionBar().setSubtitle(manager.getBackStackEntryAt(
                                 manager.getBackStackEntryCount() - 1).getName());
                         HtmlPageManager.clearStoredHtmlPages(this);
@@ -119,7 +127,7 @@ public class MainActivity extends ActionBarActivity implements
                         enableDrawer();
                     }
                 }
-            }else {
+            } else {
                 this.finish();
             }
         }
@@ -128,11 +136,11 @@ public class MainActivity extends ActionBarActivity implements
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         mDrawerLayout = (DrawerLayout) findViewById(R.id.main_drawer_layout);
-        switch (item.getItemId()){
+        switch (item.getItemId()) {
             case android.R.id.home:
-                if (mDrawerLayout.isDrawerOpen(GravityCompat.START)){
+                if (mDrawerLayout.isDrawerOpen(GravityCompat.START)) {
                     mDrawerLayout.closeDrawer(GravityCompat.START);
-                }else {
+                } else {
                     mDrawerLayout.openDrawer(GravityCompat.START);
                 }
                 return true;
@@ -154,38 +162,28 @@ public class MainActivity extends ActionBarActivity implements
         FragmentManager manager = getFragmentManager();
         RecyclerViewFragment recyclerViewFragment = (RecyclerViewFragment) manager
                 .findFragmentByTag(RecyclerViewFragment.TAG);
-        WebViewFragment webViewFragment = (WebViewFragment) manager
-                .findFragmentByTag(WebViewFragment.TAG);
-        if (webViewFragment !=null && webViewFragment.isVisible()){
-            recyclerViewFragment = new RecyclerViewFragment();
-            FragmentTransaction transaction = manager.beginTransaction();
-            transaction.replace(R.id.list_view_fragment, recyclerViewFragment, RecyclerViewFragment.TAG);
-            transaction.addToBackStack(subTitleString);
-            recyclerViewFragment.setListUrl(newsListUrl, newsLinkId);
-            transaction.commit();
-        }else {
-            recyclerViewFragment.setListUrl(newsListUrl, newsLinkId);
-            recyclerViewFragment.onRefresh();
-        }
+        recyclerViewFragment.setListUrl(newsListUrl, newsLinkId);
+        recyclerViewFragment.onRefresh();
         mDrawerLayout.closeDrawer(GravityCompat.START);
     }
 
     @Override
-    public void minimizingHtmlPageCallback(String htmlPageString, String primaryUrl) {
+    public void minimizingHtmlPageCallback(String htmlPageString, String primaryUrl, long storyId) {
 
         disableDrawer();
         FragmentManager manager = getFragmentManager();
         FragmentTransaction transaction = manager.beginTransaction();
         transaction.setCustomAnimations(R.anim.enter, R.anim.exit);
         WebViewFragment webViewFragment = (WebViewFragment) manager.findFragmentByTag(WebViewFragment.TAG);
-        if (null == webViewFragment  ) {
+        if (null == webViewFragment) {
             webViewFragment = new WebViewFragment();
         }
         transaction.replace(R.id.list_view_fragment, webViewFragment, WebViewFragment.TAG);
         transaction.addToBackStack(subTitleString);
-        webViewFragment.setWebViewUrl(htmlPageString, primaryUrl);
+        webViewFragment.setWebViewParams(htmlPageString, primaryUrl, storyId, mFavoriteFlag);
         transaction.commit();
     }
+
     private void enableDrawer() {
         mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
         getSupportActionBar().setLogo(R.drawable.ic_actionbar_logo);
@@ -193,6 +191,7 @@ public class MainActivity extends ActionBarActivity implements
         getSupportActionBar().setDisplayShowHomeEnabled(false);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
     }
+
     private void disableDrawer() {
         mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
         getSupportActionBar().setLogo(R.drawable.ic_actionbar_logo);
@@ -201,4 +200,56 @@ public class MainActivity extends ActionBarActivity implements
         getSupportActionBar().setDisplayHomeAsUpEnabled(false);
     }
 
+    @Override
+    public void onDrawerFavoritesItemClick(String title, long newsId) {
+        subTitleString = title;
+        newsLinkId = newsId;
+        getSupportActionBar().setSubtitle(subTitleString);
+        mDrawerLayout.closeDrawer(GravityCompat.START);
+        FragmentManager manager = getFragmentManager();
+        RecyclerViewFragment recyclerViewFragment = (RecyclerViewFragment) manager
+                .findFragmentByTag(RecyclerViewFragment.TAG);
+        recyclerViewFragment.showFavorites();
+
+    }
+
+    @Override
+    public void onShareButtonClick(String url) {
+        Intent intent = new Intent(Intent.ACTION_SEND);
+        intent.setType("text/plain");
+        intent.putExtra(Intent.EXTRA_TEXT, url);
+        startActivity(Intent.createChooser(intent, "Share link"));
+    }
+
+    @Override
+    public void onFavoriteCheckChanged(long newsItemId, boolean flag) {
+        mFavoriteFlag = flag;
+        MarkAsFavoriteTask markAsFavoriteTask = new MarkAsFavoriteTask(flag);
+        markAsFavoriteTask.execute(newsItemId);
+    }
+
+    private class MarkAsFavoriteTask extends AsyncTask<Long, Void, Void> {
+        boolean favoritesFlag;
+
+        public MarkAsFavoriteTask(boolean flag) {
+            favoritesFlag = flag;
+        }
+
+        @Override
+        protected Void doInBackground(Long... params) {
+            NewsListDatabaseHelper newsListDatabaseHelper = new NewsListDatabaseHelper(getBaseContext());
+            newsListDatabaseHelper.setFavorite(params[0], favoritesFlag);
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            if(-1 == newsLinkId ){
+                FragmentManager manager = getFragmentManager();
+                RecyclerViewFragment recyclerViewFragment = (RecyclerViewFragment) manager
+                        .findFragmentByTag(RecyclerViewFragment.TAG);
+                recyclerViewFragment.onRefresh();
+            }
+        }
+    }
 }

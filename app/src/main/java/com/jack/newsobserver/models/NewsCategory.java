@@ -5,7 +5,7 @@ import java.util.List;
 public class NewsCategory {
     private long categoryId;
     private String categoryName;
-    public List<NewsTopic> categoryTopics;
+    private List<NewsTopic> categoryTopics;
 
 
     public long getCategoryId() {

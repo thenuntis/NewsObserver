@@ -27,7 +27,7 @@ public class MainUrlHtmlParser {
     private static List<NewsCategory> parseDocument(Document htmlDocument) {
         Elements categories = htmlDocument.select(MAIN_HTML_ELEMENT);
         List<NewsCategory> categoriesList = new ArrayList<>();
-        for (Element category : categories){
+        for (Element category : categories) {
             Element categoryElement = htmlDocument.select(MAIN_HTML_ELEMENT).get(categories.indexOf(category));
             NewsCategory categoryItem = getFilledCategory(categoryElement);
             categoriesList.add(categoryItem);
@@ -48,8 +48,8 @@ public class MainUrlHtmlParser {
 
     private static ArrayList<NewsTopic> getTopicsArrayList(Elements topics) {
         ArrayList<NewsTopic> newTopicsList = new ArrayList<>();
-        for (Element topic:topics){
-            NewsTopic mTopic= new NewsTopic();
+        for (Element topic : topics) {
+            NewsTopic mTopic = new NewsTopic();
             Document bodyOfTopic = Jsoup.parse(String.valueOf(topic));
             Elements topicContent = bodyOfTopic.select(URL_CONTENT_TEXT);
             mTopic.setTopicName(topicContent.text());

@@ -11,12 +11,17 @@ import android.text.style.ForegroundColorSpan;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.jack.newsobserver.R;
 import com.jack.newsobserver.fragments.RecyclerViewFragment;
+import com.jack.newsobserver.interfaces.OnFavoriteCheckChangeListener;
+import com.jack.newsobserver.interfaces.OnShareButtonClickListener;
 import com.jack.newsobserver.manager.GetImageTaskManager;
 import com.jack.newsobserver.models.NewsList;
 import com.jack.newsobserver.util.DateTimeUtil;
@@ -31,20 +36,21 @@ public class NewsListAdapter extends RecyclerView.Adapter<NewsListAdapter.ViewHo
     private String mSearchText;
     private RecyclerViewFragment fragment;
 
-    public NewsListAdapter(Context mContext, RecyclerViewFragment activity) {
-        this.mContext = mContext;
-        this.fragment = activity;
+    public NewsListAdapter(Context context, RecyclerViewFragment fragment) {
+        this.mContext = context;
+        this.fragment = fragment;
     }
 
-    public void updateList(List<NewsList> list, String searchText){
+    public void updateList(List<NewsList> list, String searchText) {
         mNewsList = list;
-        mSearchText=searchText;
+        mSearchText = searchText;
         this.notifyDataSetChanged();
     }
 
-    public void refreshList(){
+    public void refreshList() {
         this.notifyDataSetChanged();
     }
+
     public NewsList getItem(int position) {
         return mNewsList.get(position);
     }
@@ -58,27 +64,32 @@ public class NewsListAdapter extends RecyclerView.Adapter<NewsListAdapter.ViewHo
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
         final NewsList newsItem = mNewsList.get(position);
-        new GetImageTaskManager(holder,mContext).execute(newsItem.getImgUrl());
-
-        if (0 == newsItem.getNewsLastWatched().getTime()){
+        new GetImageTaskManager(holder, mContext).execute(newsItem.getImgUrl());
+        if (0 == newsItem.getNewsLastWatched().getTime()) {
             holder.nameTxt.setTextColor(mContext.getResources().getColor(R.color.not_watched_news_color));
-        }else{
+        } else {
             holder.nameTxt.setTextColor(mContext.getResources().getColor(R.color.watched_news_color));
         }
         if (null == mSearchText) {
             holder.nameTxt.setText(newsItem.getStoryTitle());
-        }else {
+        } else {
             holder.nameTxt.setText(highlightedSearchText(newsItem.getStoryTitle()));
         }
-        holder.pubDateTxt.setText(DateTimeUtil.getStringFromMsec(mContext,newsItem.getStoryPubdate().getTime()));
+        holder.pubDateTxt.setText(DateTimeUtil.getStringFromMsec(mContext, newsItem.getStoryPubdate().getTime()));
         holder.authorTxt.setText(newsItem.getStoryAuthor());
         holder.setClickListener(new ViewHolder.NewsListItemClickListener() {
             @Override
-            public void onNewsListItemClick(View v, int position) {
+            public void onNewsListItemClick() {
                 OnSelectedListItemListener listener = fragment;
                 listener.onListItemSelected(newsItem);
             }
         });
+        OnFavoriteCheckChangeListener favoriteCheckChangeListener = (OnFavoriteCheckChangeListener) fragment.getActivity();
+        holder.setCheckChangeListener(newsItem.getStoryId(), favoriteCheckChangeListener);
+        holder.favoriteNewsCheckBox.setChecked(newsItem.getNewsFavorite());
+        OnShareButtonClickListener shareButtonClickListener = (OnShareButtonClickListener) fragment.getActivity();
+        holder.setShareButtonClickListener(newsItem.getStoryLink(), shareButtonClickListener);
+
     }
 
     @Override
@@ -90,12 +101,14 @@ public class NewsListAdapter extends RecyclerView.Adapter<NewsListAdapter.ViewHo
         }
     }
 
-    public static class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener{
+    public static class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
         public ImageView iconImg;
         public ProgressBar indicator;
         public TextView nameTxt;
         public TextView pubDateTxt;
         public TextView authorTxt;
+        public CheckBox favoriteNewsCheckBox;
+        public ImageButton shareNewsButton;
 
         private NewsListItemClickListener clickListener;
 
@@ -106,11 +119,31 @@ public class NewsListAdapter extends RecyclerView.Adapter<NewsListAdapter.ViewHo
             nameTxt = (TextView) v.findViewById(R.id.nameTxt);
             pubDateTxt = (TextView) v.findViewById(R.id.pubDateTxt);
             authorTxt = (TextView) v.findViewById(R.id.authorTxt);
+            favoriteNewsCheckBox = (CheckBox) v.findViewById(R.id.news_list_favorite_checkBox);
+            shareNewsButton = (ImageButton) v.findViewById(R.id.news_list_share_btn);
             v.setOnClickListener(this);
         }
 
+        public void setCheckChangeListener(final long storyId, final OnFavoriteCheckChangeListener listener) {
+            favoriteNewsCheckBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                @Override
+                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                    listener.onFavoriteCheckChanged(storyId, isChecked);
+                }
+            });
+        }
+
+        public void setShareButtonClickListener(final String storyLink, final OnShareButtonClickListener shareButtonClickListener) {
+            shareNewsButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    shareButtonClickListener.onShareButtonClick(storyLink);
+                }
+            });
+        }
+
         public interface NewsListItemClickListener {
-            void onNewsListItemClick(View v, int position);
+            void onNewsListItemClick();
         }
 
 
@@ -120,24 +153,24 @@ public class NewsListAdapter extends RecyclerView.Adapter<NewsListAdapter.ViewHo
 
         @Override
         public void onClick(View v) {
-            clickListener.onNewsListItemClick(v, getPosition());
+            clickListener.onNewsListItemClick();
         }
     }
 
 
-        private Spannable highlightedSearchText (String text){
-            int startPos = text.toLowerCase(Locale.US).indexOf(mSearchText.toLowerCase(Locale.US));
-            int endPos = startPos + mSearchText.length();
-            Spannable highlightedText = new SpannableString(text);
-            if(startPos !=-1){
-                highlightedText.setSpan(new BackgroundColorSpan(Color.BLACK),startPos,endPos, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-                highlightedText.setSpan(new ForegroundColorSpan(Color.WHITE),startPos,endPos, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-            }
-            return highlightedText;
+    private Spannable highlightedSearchText(String text) {
+        int startPos = text.toLowerCase(Locale.US).indexOf(mSearchText.toLowerCase(Locale.US));
+        int endPos = startPos + mSearchText.length();
+        Spannable highlightedText = new SpannableString(text);
+        if (startPos != -1) {
+            highlightedText.setSpan(new BackgroundColorSpan(Color.BLACK), startPos, endPos, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            highlightedText.setSpan(new ForegroundColorSpan(Color.WHITE), startPos, endPos, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         }
-
+        return highlightedText;
+    }
 
     public interface OnSelectedListItemListener {
         void onListItemSelected(NewsList newsList);
     }
+
 }

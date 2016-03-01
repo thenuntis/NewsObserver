@@ -10,9 +10,9 @@ public class AlertDialogManager {
 
     public void alertDialogShow(Context context) {
         final AlertDialog.Builder dialogMsg = new AlertDialog.Builder(context);
-        dialogMsg.setTitle(R.string.dialogErrorTitle)
-                .setMessage(R.string.dialogErrorMsg);
-        dialogMsg.setPositiveButton(R.string.dialogErrorPositiveOkBtn, new DialogInterface.OnClickListener() {
+        dialogMsg.setTitle(R.string.dialog_error_title)
+                .setMessage(R.string.dialog_error_message);
+        dialogMsg.setPositiveButton(R.string.dialog_error_ok_btn, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 dialog.dismiss();

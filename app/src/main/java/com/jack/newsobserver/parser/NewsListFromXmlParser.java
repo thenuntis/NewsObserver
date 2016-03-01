@@ -20,12 +20,12 @@ import java.util.List;
 
 public class NewsListFromXmlParser {
 
-    static final String KEY_ITEM = "item";
-    static final String KEY_TITLE = "title";
-    static final String KEY_LINK = "link";
-    static final String KEY_AUTHOR = "author";
-    static final String KEY_PUBDATE = "pubdate";
-    static final String KEY_DESCRIPTION = "description";
+    private static final String KEY_ITEM = "item";
+    private static final String KEY_TITLE = "title";
+    private static final String KEY_LINK = "link";
+    private static final String KEY_AUTHOR = "author";
+    private static final String KEY_PUBDATE = "pubdate";
+    private static final String KEY_DESCRIPTION = "description";
     private static boolean isTitleFromItem = false;
     private static boolean isLinkFromItem = false;
     private static boolean isDescriptionFromItem = false;
@@ -59,7 +59,7 @@ public class NewsListFromXmlParser {
                         isTitleFromItem = false;
                         isLinkFromItem = false;
                         isDescriptionFromItem = false;
-                        if (null != curNewsList){
+                        if (null != curNewsList) {
                             newsList.add(curNewsList);
                         }
                     } else if (tagname.equalsIgnoreCase(KEY_TITLE) && isTitleFromItem) {
@@ -80,8 +80,8 @@ public class NewsListFromXmlParser {
                         }
                     } else if (tagname.equalsIgnoreCase(KEY_DESCRIPTION) && isDescriptionFromItem) {
                         int startPos = curText.indexOf("http:");
-                        int finishPos = curText.indexOf("'",startPos) ;
-                        curText = curText.substring(startPos,finishPos);
+                        int finishPos = curText.indexOf("'", startPos);
+                        curText = curText.substring(startPos, finishPos);
                         if (null != curNewsList) {
                             curNewsList.setImgUrl(curText);
                         }
@@ -92,7 +92,7 @@ public class NewsListFromXmlParser {
             }
             eventType = xpp.next();
         }
-        if (0 == newsList.size()){
+        if (0 == newsList.size()) {
             return null;
         }
         return newsList;
@@ -102,7 +102,7 @@ public class NewsListFromXmlParser {
         DefaultHttpClient client = new DefaultHttpClient();
         HttpGet method = new HttpGet(new URI(url));
         HttpResponse res = client.execute(method);
-        return  res.getEntity().getContent();
+        return res.getEntity().getContent();
     }
 
 }

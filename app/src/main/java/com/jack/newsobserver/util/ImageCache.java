@@ -12,6 +12,7 @@ public class ImageCache {
     public static ImageCache getInstance() {
         return ourInstance;
     }
+
     private ImageCache() {
 
         final int maxMemory = (int) (Runtime.getRuntime().maxMemory());
@@ -23,15 +24,18 @@ public class ImageCache {
             }
         };
     }
+
     public static void addBitmapToMemoryCache(String key, Bitmap bitmap) {
         if (getBitmapFromMemCache(key) == null) {
             imgMemoryCache.put(key, bitmap);
         }
     }
+
     public static Bitmap getBitmapFromMemCache(String key) {
         return imgMemoryCache.get(key);
     }
-    public static void clearCache () {
+
+    public static void clearCache() {
         imgMemoryCache.evictAll();
     }
 }

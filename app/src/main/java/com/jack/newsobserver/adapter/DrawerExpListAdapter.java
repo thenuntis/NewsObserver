@@ -20,7 +20,7 @@ public class DrawerExpListAdapter extends BaseExpandableListAdapter {
     private ViewHolder viewHolder;
 
     public DrawerExpListAdapter(Context context, List<NewsCategory> categories) {
-        this.mContext=context;
+        this.mContext = context;
         this.mGroups = categories;
     }
 
@@ -62,12 +62,12 @@ public class DrawerExpListAdapter extends BaseExpandableListAdapter {
     @Override
     public View getGroupView(int groupPosition, boolean isExpanded, View convertView, ViewGroup parent) {
         NewsCategory group = mGroups.get(groupPosition);
-        if (null == convertView){
+        if (null == convertView) {
             LayoutInflater inflater = (LayoutInflater) mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-            convertView = inflater.inflate(R.layout.drawer_explist_group_item,parent,false);
+            convertView = inflater.inflate(R.layout.drawer_explist_group_item, parent, false);
             viewHolder = new ViewHolder(convertView);
             convertView.setTag(viewHolder);
-        }else {
+        } else {
             viewHolder = (ViewHolder) convertView.getTag();
         }
         viewHolder.groupNameTxt.setText(group.getCategoryName());
@@ -77,12 +77,12 @@ public class DrawerExpListAdapter extends BaseExpandableListAdapter {
     @Override
     public View getChildView(int groupPosition, int childPosition, boolean isLastChild, View convertView, ViewGroup parent) {
         NewsTopic topic = (NewsTopic) getChild(groupPosition, childPosition);
-        if (null == convertView){
+        if (null == convertView) {
             LayoutInflater inflater = (LayoutInflater) mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-            convertView = inflater.inflate(R.layout.drawer_explist_child_item,parent,false);
+            convertView = inflater.inflate(R.layout.drawer_explist_child_item, parent, false);
             viewHolder = new ViewHolder(convertView);
             convertView.setTag(viewHolder);
-        }else {
+        } else {
             viewHolder = (ViewHolder) convertView.getTag();
         }
         viewHolder.childNameTxt.setText(topic.getTopicName());

@@ -14,9 +14,14 @@ import android.view.ViewGroup;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
+import android.widget.ImageButton;
 import android.widget.ProgressBar;
 
 import com.jack.newsobserver.R;
+import com.jack.newsobserver.interfaces.OnFavoriteCheckChangeListener;
+import com.jack.newsobserver.interfaces.OnShareButtonClickListener;
 import com.jack.newsobserver.manager.HtmlPageManager;
 import com.jack.newsobserver.util.Constants;
 
@@ -29,6 +34,8 @@ public class WebViewFragment extends Fragment {
     public static final String TAG = "WebViewFragmentTag";
     private String mSiteUrl;
     private String mSiteData;
+    private long mSiteId;
+    private boolean mFavoriteChecked;
     private ArrayList<String> mHistoryList;
     private WebView mWebView;
     private ProgressBar mWebViewBar;
@@ -36,7 +43,7 @@ public class WebViewFragment extends Fragment {
     private static final String HISTORY_LIST = "historyList";
     private static float mScrollPositionY;
 
-    public WebViewFragment(){
+    public WebViewFragment() {
         setArguments(new Bundle());
     }
 
@@ -53,22 +60,40 @@ public class WebViewFragment extends Fragment {
         mWebView = (WebView) rootView.findViewById(R.id.webView);
         setWebViewSettings();
         Bundle mSavedBundle = getArguments();
-        if (null == mHistoryList){
-            mHistoryList=mSavedBundle.getStringArrayList(HISTORY_LIST);
+        if (null == mHistoryList) {
+            mHistoryList = mSavedBundle.getStringArrayList(HISTORY_LIST);
         }
         mScrollPositionY = mSavedBundle.getFloat(SCROLL_VALUE);
         mWebView.loadDataWithBaseURL(mSiteUrl, mSiteData, "text/html", "UTF-8", null);
-        if(mHistoryList.isEmpty()){
+        if (mHistoryList.isEmpty()) {
             mHistoryList.add(mSiteUrl);
         }
-
-
+        ImageButton shareButton = (ImageButton) rootView.findViewById(R.id.web_view_share_btn);
+        shareButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                OnShareButtonClickListener listener = (OnShareButtonClickListener) getActivity();
+                listener.onShareButtonClick(mSiteUrl);
+            }
+        });
+        CheckBox favoriteCheckbox = (CheckBox) rootView.findViewById(R.id.web_view_favorite_checkBox);
+        favoriteCheckbox.setChecked(mFavoriteChecked);
+        favoriteCheckbox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                mFavoriteChecked = isChecked;
+                OnFavoriteCheckChangeListener listener = (OnFavoriteCheckChangeListener) getActivity();
+                listener.onFavoriteCheckChanged(mSiteId, isChecked);
+            }
+        });
         return rootView;
     }
 
-    public void setWebViewUrl (String data,String primaryUrl) {
+    public void setWebViewParams(String data, String primaryUrl, long storyId, boolean favoriteFlag) {
         mSiteUrl = primaryUrl;
-        mSiteData= data;
+        mSiteData = data;
+        mSiteId = storyId;
+        mFavoriteChecked = favoriteFlag;
     }
 
     public boolean canGoPreviousPage() {
@@ -76,7 +101,7 @@ public class WebViewFragment extends Fragment {
 
     }
 
-    public void goPreviousPage (){
+    public void goPreviousPage() {
         mHistoryList.remove(mHistoryList.size() - 1);
         loadPage(mHistoryList.get(mHistoryList.size() - 1));
     }
@@ -97,20 +122,20 @@ public class WebViewFragment extends Fragment {
         @Override
         public void onPageFinished(WebView view, String url) {
             mWebViewBar.setVisibility(View.INVISIBLE);
-            if (0 != mScrollPositionY){
+            if (0 != mScrollPositionY) {
                 view.postDelayed(new Runnable() {
                     @Override
                     public void run() {
                         float webviewsize = mWebView.getContentHeight();
                         float scrollCoef = (float) 1.3;
                         float scrollPosition;
-                        if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE){
+                        if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
                             scrollPosition = webviewsize * (mScrollPositionY * scrollCoef);
-                        }else {
+                        } else {
                             scrollPosition = webviewsize * (mScrollPositionY / scrollCoef);
                         }
                         int positionY = Math.round(scrollPosition);
-                        mWebView.scrollTo(0,positionY);
+                        mWebView.scrollTo(0, positionY);
                     }
                 }, 100);
             }
@@ -118,10 +143,10 @@ public class WebViewFragment extends Fragment {
 
         @Override
         public boolean shouldOverrideUrlLoading(WebView view, String url) {
-            if(Uri.parse(url).getHost().contains(Constants.MAIN_HOST_NAME)) {
+            if (Uri.parse(url).getHost().contains(Constants.MAIN_HOST_NAME)) {
                 loadPage(url);
                 mHistoryList.add(url);
-            }else {
+            } else {
                 Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
                 view.getContext().startActivity(intent);
             }
@@ -129,7 +154,7 @@ public class WebViewFragment extends Fragment {
         }
     }
 
-    private void loadPage (String url) {
+    private void loadPage(String url) {
         MinimizeHtmlPageTask minimizeHtmlPageTask = new MinimizeHtmlPageTask();
         minimizeHtmlPageTask.execute(url);
     }
@@ -140,7 +165,7 @@ public class WebViewFragment extends Fragment {
         return (currentScrollPosition) / contentHeight;
     }
 
-    private void setWebViewSettings(){
+    private void setWebViewSettings() {
         mWebView.getSettings().setJavaScriptEnabled(true);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             mWebView.getSettings().setLayoutAlgorithm(WebSettings.LayoutAlgorithm.TEXT_AUTOSIZING);
@@ -152,11 +177,12 @@ public class WebViewFragment extends Fragment {
 
     private class MinimizeHtmlPageTask extends AsyncTask<String, Void, Void> {
         private String url;
+
         @Override
         protected Void doInBackground(String... params) {
             url = params[0];
             try {
-                mSiteData=HtmlPageManager.getHtmlPage(getActivity(), url);
+                mSiteData = HtmlPageManager.getHtmlPage(getActivity(), url);
             } catch (IOException e) {
                 e.printStackTrace();
             }

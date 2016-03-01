@@ -12,8 +12,15 @@ public class NewsList {
     private Date storyPubdate;
     private String imgUrl;
     private Date newsLastWatched;
+    private boolean newsFavorite;
 
+    public boolean getNewsFavorite() {
+        return newsFavorite;
+    }
 
+    public void setNewsFavorite(boolean newsFavorite) {
+        this.newsFavorite = newsFavorite;
+    }
 
     public long getStoryId() {
         return storyId;
@@ -34,6 +41,7 @@ public class NewsList {
     public String getStoryTitle() {
         return storyTitle;
     }
+
     public void setStoryTitle(String storyTitle) {
         this.storyTitle = storyTitle;
     }
@@ -41,6 +49,7 @@ public class NewsList {
     public String getStoryLink() {
         return storyLink;
     }
+
     public void setStoryLink(String storyLink) {
         this.storyLink = storyLink;
     }
@@ -48,6 +57,7 @@ public class NewsList {
     public String getStoryAuthor() {
         return storyAuthor;
     }
+
     public void setStoryAuthor(String storyAuthor) {
         this.storyAuthor = storyAuthor;
     }
@@ -55,6 +65,7 @@ public class NewsList {
     public Date getStoryPubdate() {
         return storyPubdate;
     }
+
     public void setStoryPubdate(Date storyPubdate) {
         this.storyPubdate = storyPubdate;
     }
@@ -62,6 +73,7 @@ public class NewsList {
     public String getImgUrl() {
         return imgUrl;
     }
+
     public void setImgUrl(String imgUrl) {
         this.imgUrl = imgUrl;
     }
@@ -69,6 +81,7 @@ public class NewsList {
     public Date getNewsLastWatched() {
         return newsLastWatched;
     }
+
     public void setNewsLastWatched(Date newsLastWatched) {
         this.newsLastWatched = newsLastWatched;
     }
