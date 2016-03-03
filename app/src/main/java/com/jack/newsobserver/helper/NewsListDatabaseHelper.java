@@ -49,8 +49,6 @@ public class NewsListDatabaseHelper {
     public List<NewsList> getNewsList(long topicId, String searchText) {
         String filteredText;
         String query;
-
-
         if (null == searchText) {
             filteredText = "%";
         } else {
@@ -68,7 +66,6 @@ public class NewsListDatabaseHelper {
                     + " AND " + DatabaseHelper.LIST_TITLE_COLUMN + " LIKE '%" + filteredText + "%' "
                     + " ORDER BY " + DatabaseHelper.LIST_PUBDATE_COLUMN + " DESC";
         }
-
         Cursor cursor = db.createCursor(query);
         while (cursor.moveToNext()) {
             NewsList newsItem = new NewsList();
@@ -87,7 +84,6 @@ public class NewsListDatabaseHelper {
                 newsItem.setNewsFavorite(favoriteValue == 1);
             }
             newsList.add(newsItem);
-
         }
         cursor.close();
         return newsList;
@@ -109,7 +105,6 @@ public class NewsListDatabaseHelper {
     }
 
     public void setFavorite(long newsId, boolean flag){
-        Log.w("NewLstDBHlpr","setFavorite: "+flag);
         ContentValues values = new ContentValues();
         int inputValue = 0;
         if(flag){

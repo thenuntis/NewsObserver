@@ -89,6 +89,11 @@ public class MainActivity extends ActionBarActivity implements
     @Override
     protected void onPostCreate(Bundle savedInstanceState) {
         super.onPostCreate(savedInstanceState);
+        FragmentManager manager = getFragmentManager();
+        WebViewFragment webViewFragment = (WebViewFragment) manager.findFragmentByTag(WebViewFragment.TAG);
+        if (null != webViewFragment) {
+            webViewFragmentMenuActivate();
+        }
         mDrawerToggle.syncState();
     }
 
@@ -135,13 +140,19 @@ public class MainActivity extends ActionBarActivity implements
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        mDrawerLayout = (DrawerLayout) findViewById(R.id.main_drawer_layout);
         switch (item.getItemId()) {
             case android.R.id.home:
-                if (mDrawerLayout.isDrawerOpen(GravityCompat.START)) {
-                    mDrawerLayout.closeDrawer(GravityCompat.START);
+                mDrawerLayout = (DrawerLayout) findViewById(R.id.main_drawer_layout);
+                FragmentManager manager = getFragmentManager();
+                WebViewFragment webViewFragment = (WebViewFragment) manager.findFragmentByTag(WebViewFragment.TAG);
+                if (null == webViewFragment) {
+                    if (mDrawerLayout.isDrawerOpen(GravityCompat.START)) {
+                        mDrawerLayout.closeDrawer(GravityCompat.START);
+                    } else {
+                        mDrawerLayout.openDrawer(GravityCompat.START);
+                    }
                 } else {
-                    mDrawerLayout.openDrawer(GravityCompat.START);
+                    onBackPressed();
                 }
                 return true;
             case R.id.action_search:
@@ -169,8 +180,7 @@ public class MainActivity extends ActionBarActivity implements
 
     @Override
     public void minimizingHtmlPageCallback(String htmlPageString, String primaryUrl, long storyId) {
-
-        disableDrawer();
+        webViewFragmentMenuActivate();
         FragmentManager manager = getFragmentManager();
         FragmentTransaction transaction = manager.beginTransaction();
         transaction.setCustomAnimations(R.anim.enter, R.anim.exit);
@@ -192,12 +202,12 @@ public class MainActivity extends ActionBarActivity implements
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
     }
 
-    private void disableDrawer() {
+    private void webViewFragmentMenuActivate() {
         mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
         getSupportActionBar().setLogo(R.drawable.ic_actionbar_logo);
         getSupportActionBar().setDisplayUseLogoEnabled(true);
-        getSupportActionBar().setDisplayShowHomeEnabled(true);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(false);
+        mDrawerToggle.setDrawerIndicatorEnabled(false);
+        mDrawerToggle.setHomeAsUpIndicator(getApplicationContext().getResources().getDrawable(R.drawable.ic_arrow_left));
     }
 
     @Override
@@ -210,7 +220,6 @@ public class MainActivity extends ActionBarActivity implements
         RecyclerViewFragment recyclerViewFragment = (RecyclerViewFragment) manager
                 .findFragmentByTag(RecyclerViewFragment.TAG);
         recyclerViewFragment.showFavorites();
-
     }
 
     @Override
@@ -244,7 +253,7 @@ public class MainActivity extends ActionBarActivity implements
 
         @Override
         protected void onPostExecute(Void aVoid) {
-            if(-1 == newsLinkId ){
+            if (-1 == newsLinkId) {
                 FragmentManager manager = getFragmentManager();
                 RecyclerViewFragment recyclerViewFragment = (RecyclerViewFragment) manager
                         .findFragmentByTag(RecyclerViewFragment.TAG);

@@ -12,18 +12,18 @@
         android:baselineAligned="false">
         <FrameLayout
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:layout_weight="2">
             <CheckBox
                 android:id="@+id/web_view_favorite_checkBox"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:button="@drawable/favorite"
-                android:layout_gravity="center_horizontal"/>
+                android:layout_gravity="center"/>
         </FrameLayout>
         <FrameLayout
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:layout_weight="2"           >
             <ImageButton
                 android:id="@+id/web_view_share_btn"
@@ -31,7 +31,7 @@
                 android:layout_height="wrap_content"
                 android:contentDescription="@string/share_button_description"
                 android:background="@android:drawable/ic_menu_share"
-                android:layout_gravity="center_horizontal"/>
+                android:layout_gravity="center"/>
         </FrameLayout>
 
     </LinearLayout>

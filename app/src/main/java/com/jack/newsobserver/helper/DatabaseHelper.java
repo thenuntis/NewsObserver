@@ -59,28 +59,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(final SQLiteDatabase db) {
-//        String categoryCreateSql = "create table " + NEWS_CATEGORY_TABLE + "("
-//                + ID_COLUMN + " integer primary key autoincrement, "
-//                + NAME_COLUMN + " text not null" + ")";
         db.execSQL(categoryCreateSql);
-//        String topicsCreateSql = "create table " + NEWS_TOPICS_TABLE + "("
-//                + ID_COLUMN + " integer primary key autoincrement, "
-//                + TOPICS_CATEGORY_ID_COLUMN + " integer not null "
-//                + "REFERENCES " + NEWS_CATEGORY_TABLE + " (" + ID_COLUMN + "), "
-//                + NAME_COLUMN + " text not null, "
-//                + TOPICS_LINK_COLUMN + " text not null" + ")";
         db.execSQL(topicsCreateSql);
-//        newslistCreateSql = "create table " + NEWS_LIST_TABLE + "("
-//                + ID_COLUMN + " integer primary key autoincrement, "
-//                + LIST_TOPIC_ID_COLUMN + " integer not null "
-//                + "REFERENCES " + NEWS_TOPICS_TABLE + " (" + ID_COLUMN + "), "
-//                + LIST_TITLE_COLUMN + " text not null, "
-//                + LIST_AUTHOR_COLUMN + " text not null, "
-//                + LIST_PUBDATE_COLUMN + " datetime, "
-//                + LIST_IMGURL_COLUMN + " text not null, "
-//                + LIST_LINK_COLUMN + " text not null, "
-//                + LIST_WATCHED_COLUMN + " datetime, "
-//                + LIST_FAVORITE_COLUMN + "boolean" + ")";
         db.execSQL(newslistCreateSql);
     }
 
@@ -133,7 +113,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.execSQL("DROP TABLE IF EXISTS " + NEWS_LIST_TABLE + TABLE_TEMP_PEFIX);
         db.execSQL("DROP TABLE IF EXISTS " + NEWS_TOPICS_TABLE + TABLE_TEMP_PEFIX);
         db.execSQL("DROP TABLE IF EXISTS " + NEWS_CATEGORY_TABLE + TABLE_TEMP_PEFIX);
-//        onCreate(db);
     }
 
     @Override

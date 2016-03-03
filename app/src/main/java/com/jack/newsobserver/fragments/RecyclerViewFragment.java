@@ -42,7 +42,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class RecyclerViewFragment extends Fragment implements SwipeRefreshLayout.OnRefreshListener,
-        NewsListAdapter.OnSelectedListItemListener{
+        NewsListAdapter.OnSelectedListItemListener {
 
     public static final String TAG = "RecyclerViewFragmentTag";
     private static final String ACTION_SEARCH_HINT = "Search";
@@ -95,10 +95,10 @@ public class RecyclerViewFragment extends Fragment implements SwipeRefreshLayout
 
     @Override
     public void onRefresh() {
-        if(-1 != mSiteId){
+        if (-1 != mSiteId) {
             ImageCache.clearCache();
             loadNewsList();
-        }else {
+        } else {
             showFavorites();
             mSwipeLayout.setRefreshing(false);
         }
@@ -294,7 +294,7 @@ public class RecyclerViewFragment extends Fragment implements SwipeRefreshLayout
         @Override
         protected void onPostExecute(String htmlPageString) {
             onMinimizingFinishedListener listener = (onMinimizingFinishedListener) getActivity();
-            listener.minimizingHtmlPageCallback(htmlPageString, primaryUrl,storyId);
+            listener.minimizingHtmlPageCallback(htmlPageString, primaryUrl, storyId);
         }
     }
 
