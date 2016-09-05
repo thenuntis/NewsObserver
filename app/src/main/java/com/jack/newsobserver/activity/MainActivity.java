@@ -183,7 +183,7 @@ public class MainActivity extends ActionBarActivity implements
         webViewFragmentMenuActivate();
         FragmentManager manager = getFragmentManager();
         FragmentTransaction transaction = manager.beginTransaction();
-        transaction.setCustomAnimations(R.anim.enter, R.anim.exit);
+        transaction.setCustomAnimations(R.animator.enter, R.animator.exit);
         WebViewFragment webViewFragment = (WebViewFragment) manager.findFragmentByTag(WebViewFragment.TAG);
         if (null == webViewFragment) {
             webViewFragment = new WebViewFragment();
@@ -240,7 +240,7 @@ public class MainActivity extends ActionBarActivity implements
     private class MarkAsFavoriteTask extends AsyncTask<Long, Void, Void> {
         boolean favoritesFlag;
 
-        public MarkAsFavoriteTask(boolean flag) {
+        private MarkAsFavoriteTask(boolean flag) {
             favoritesFlag = flag;
         }
 

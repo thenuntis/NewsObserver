@@ -210,6 +210,7 @@ public class RecyclerViewFragment extends Fragment implements SwipeRefreshLayout
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
                     dialog.cancel();
+                    mSwipeLayout.setRefreshing(false);
                 }
             });
             dialogMsg.show();
