@@ -11,6 +11,7 @@ import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.app.ActionBarDrawerToggle;
+import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 
@@ -130,6 +131,7 @@ public class MainActivity extends ActionBarActivity implements
                         HtmlPageManager.clearStoredHtmlPages(this);
                         manager.popBackStack();
                         enableDrawer();
+
                     }
                 }
             } else {
@@ -196,16 +198,13 @@ public class MainActivity extends ActionBarActivity implements
 
     private void enableDrawer() {
         mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
-        getSupportActionBar().setLogo(R.drawable.ic_actionbar_logo);
-        getSupportActionBar().setDisplayUseLogoEnabled(false);
         getSupportActionBar().setDisplayShowHomeEnabled(false);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        mDrawerToggle.setHomeAsUpIndicator(getApplicationContext().getResources().getDrawable(R.drawable.ic_drawer));
     }
 
     private void webViewFragmentMenuActivate() {
         mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
-        getSupportActionBar().setLogo(R.drawable.ic_actionbar_logo);
-        getSupportActionBar().setDisplayUseLogoEnabled(true);
         mDrawerToggle.setDrawerIndicatorEnabled(false);
         mDrawerToggle.setHomeAsUpIndicator(getApplicationContext().getResources().getDrawable(R.drawable.ic_arrow_left));
     }

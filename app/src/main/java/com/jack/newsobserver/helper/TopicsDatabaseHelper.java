@@ -13,12 +13,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class TopicsDatabaseHelper {
-    private Context ctx;
     private DatabaseHelper db;
 
     public TopicsDatabaseHelper(Context context) {
-        this.ctx = context;
-        this.db = DatabaseHelper.getInstance(ctx);
+        this.db = DatabaseHelper.getInstance(context);
     }
 
     public void addCategoryAndRelatedTopics(List<NewsCategory> categoryList) {
