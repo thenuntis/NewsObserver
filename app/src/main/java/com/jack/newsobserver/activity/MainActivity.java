@@ -131,7 +131,6 @@ public class MainActivity extends ActionBarActivity implements
                         HtmlPageManager.clearStoredHtmlPages(this);
                         manager.popBackStack();
                         enableDrawer();
-
                     }
                 }
             } else {
@@ -201,6 +200,7 @@ public class MainActivity extends ActionBarActivity implements
         getSupportActionBar().setDisplayShowHomeEnabled(false);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         mDrawerToggle.setHomeAsUpIndicator(getApplicationContext().getResources().getDrawable(R.drawable.ic_drawer));
+        mDrawerToggle.setDrawerIndicatorEnabled(true);
     }
 
     private void webViewFragmentMenuActivate() {

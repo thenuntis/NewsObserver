@@ -94,9 +94,9 @@ public class DrawerExpListAdapter extends BaseExpandableListAdapter {
         return true;
     }
 
-    public static class ViewHolder {
-        public TextView groupNameTxt;
-        public TextView childNameTxt;
+    private static class ViewHolder {
+        TextView groupNameTxt;
+        TextView childNameTxt;
 
         ViewHolder(View v) {
             groupNameTxt = (TextView) v.findViewById(R.id.textGroup);
