@@ -5,15 +5,17 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 
 public class TestNetwork {
-    private Context mContext;
+    private TestNetwork testNetwork;
 
-    public TestNetwork(Context context) {
-        this.mContext = context;
+    private TestNetwork() {
+        if (null == testNetwork){
+            testNetwork = new TestNetwork();
+        }
     }
 
-    public boolean isNetworkAvailable() {
+    public static boolean isNetworkAvailable(Context context) {
         ConnectivityManager connectivityManager
-                = (ConnectivityManager) mContext.getSystemService(Context.CONNECTIVITY_SERVICE);
+                = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
         return activeNetworkInfo != null && activeNetworkInfo.isConnected();
     }

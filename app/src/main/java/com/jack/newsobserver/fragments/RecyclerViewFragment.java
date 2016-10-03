@@ -193,11 +193,11 @@ public class RecyclerViewFragment extends Fragment implements SwipeRefreshLayout
     }
 
     private void loadNewsList() {
-        if (new TestNetwork(getActivity()).isNetworkAvailable()) {
+        if (TestNetwork.isNetworkAvailable(getActivity())) {
             NewsListDownloadTask refreshing = new NewsListDownloadTask();
             refreshing.execute();
         } else {
-            final Builder dialogMsg = new Builder(getActivity());
+            Builder dialogMsg = new Builder(getActivity());
             dialogMsg.setTitle(R.string.dialog_error_title)
                     .setMessage(R.string.dialog_error_message);
             dialogMsg.setPositiveButton(R.string.dialog_error_retry_btn, new DialogInterface.OnClickListener() {
@@ -277,7 +277,7 @@ public class RecyclerViewFragment extends Fragment implements SwipeRefreshLayout
         private String primaryUrl;
         private long storyId;
 
-        public MinimizeHtmlPageTask(long storyId) {
+        MinimizeHtmlPageTask(long storyId) {
             this.storyId = storyId;
         }
 

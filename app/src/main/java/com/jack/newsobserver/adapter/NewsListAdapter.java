@@ -25,6 +25,8 @@ import com.jack.newsobserver.interfaces.OnShareButtonClickListener;
 import com.jack.newsobserver.manager.GetImageTaskManager;
 import com.jack.newsobserver.models.NewsList;
 import com.jack.newsobserver.util.DateTimeUtil;
+import com.squareup.picasso.Callback;
+import com.squareup.picasso.Picasso;
 
 import java.util.List;
 import java.util.Locale;
@@ -62,9 +64,26 @@ public class NewsListAdapter extends RecyclerView.Adapter<NewsListAdapter.ViewHo
     }
 
     @Override
-    public void onBindViewHolder(ViewHolder holder, int position) {
+    public void onBindViewHolder(final ViewHolder holder, int position) {
         final NewsList newsItem = mNewsList.get(position);
-        new GetImageTaskManager(holder, mContext).execute(newsItem.getImgUrl());
+        holder.iconImg.setVisibility(View.INVISIBLE);
+        holder.indicator.setVisibility(View.VISIBLE);
+        Picasso.with(mContext)
+                .load(newsItem.getImgUrl())
+                .error( R.drawable.no_image)
+                .into(holder.iconImg, new Callback() {
+            @Override
+            public void onSuccess() {
+                holder.indicator.setVisibility(View.INVISIBLE);
+                holder.iconImg.setVisibility(View.VISIBLE);
+            }
+
+            @Override
+            public void onError() {
+
+            }
+        });
+        /*new GetImageTaskManager(holder, mContext).execute(newsItem.getImgUrl());*/
         if (0 == newsItem.getNewsLastWatched().getTime()) {
             holder.nameTxt.setTextColor(mContext.getResources().getColor(R.color.not_watched_news_color));
         } else {

@@ -48,7 +48,7 @@ public class DrawerExpListFragment extends Fragment {
         View rootView = inflater.inflate(R.layout.drawer_explist_fragment, container, false);
         mExpandableListView = (ExpandableListView) rootView.findViewById(R.id.drawer_ltr_expListView);
         if (null == savedInstanceState) {
-            if (new TestNetwork(getActivity()).isNetworkAvailable()) {
+            if (TestNetwork.isNetworkAvailable(getActivity())) {
                 HtmlDataParseTask parseTask = new HtmlDataParseTask();
                 parseTask.execute(Constants.HTML_FEED_URL);
             } else {

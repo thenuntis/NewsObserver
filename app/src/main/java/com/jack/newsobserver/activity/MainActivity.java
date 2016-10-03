@@ -11,10 +11,8 @@ import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.app.ActionBarDrawerToggle;
-import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
-
 import com.jack.newsobserver.R;
 import com.jack.newsobserver.fragments.DrawerExpListFragment;
 import com.jack.newsobserver.fragments.RecyclerViewFragment;
@@ -54,7 +52,14 @@ public class MainActivity extends ActionBarActivity implements
                 newsLinkId = 1;
             }
         }
-        final FragmentManager manager = getFragmentManager();
+        initNewsListFragment();
+        initDrawerFragment();
+        initActionBar();
+
+    }
+
+    private void initNewsListFragment() {
+        FragmentManager manager = getFragmentManager();
         if (null == manager.findFragmentByTag(RecyclerViewFragment.TAG)) {
             FragmentTransaction transaction = manager.beginTransaction();
             RecyclerViewFragment recyclerViewFragment = new RecyclerViewFragment();
@@ -62,6 +67,18 @@ public class MainActivity extends ActionBarActivity implements
             recyclerViewFragment.setListUrl(newsListUrl, newsLinkId);
             transaction.commit();
         }
+    }
+
+    private void initActionBar() {
+        if (null == subTitleString) {
+            subTitleString = Constants.DEFAULT_SUBTITLE;
+        }
+        getSupportActionBar().setSubtitle(subTitleString);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setHomeButtonEnabled(true);
+    }
+
+    private void initDrawerFragment() {
         mDrawerLayout = (DrawerLayout) findViewById(R.id.main_drawer_layout);
         mDrawerToggle = new ActionBarDrawerToggle(
                 this,
@@ -77,14 +94,6 @@ public class MainActivity extends ActionBarActivity implements
             }
         };
         mDrawerLayout.setDrawerListener(mDrawerToggle);
-
-        if (null == subTitleString) {
-            subTitleString = Constants.DEFAULT_SUBTITLE;
-        }
-        getSupportActionBar().setSubtitle(subTitleString);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        getSupportActionBar().setHomeButtonEnabled(true);
-
     }
 
     @Override
@@ -95,7 +104,9 @@ public class MainActivity extends ActionBarActivity implements
         if (null != webViewFragment) {
             webViewFragmentMenuActivate();
         }
-        mDrawerToggle.syncState();
+        if (null != mDrawerToggle) {
+            mDrawerToggle.syncState();
+        }
     }
 
     @Override

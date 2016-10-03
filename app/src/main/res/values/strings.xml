@@ -6,6 +6,7 @@
     <string name="dialog_error_message">Internet Connection Unavailable. Please Connect Your Device to Internet</string>
     <string name="dialog_error_retry_btn">Retry</string>
     <string name="dialog_error_negative_btn">Cancel</string>
+    <string name="dialog_error_closeapp_btn">Close App</string>
     <string name="dialog_error_ok_btn">OK</string>
 
     <string name="navigation_drawer_open">Open navigation drawer</string>
