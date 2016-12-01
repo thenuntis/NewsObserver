@@ -22,7 +22,6 @@ import com.jack.newsobserver.R;
 import com.jack.newsobserver.fragments.RecyclerViewFragment;
 import com.jack.newsobserver.interfaces.OnFavoriteCheckChangeListener;
 import com.jack.newsobserver.interfaces.OnShareButtonClickListener;
-import com.jack.newsobserver.manager.GetImageTaskManager;
 import com.jack.newsobserver.models.NewsList;
 import com.jack.newsobserver.util.DateTimeUtil;
 import com.squareup.picasso.Callback;
@@ -83,7 +82,7 @@ public class NewsListAdapter extends RecyclerView.Adapter<NewsListAdapter.ViewHo
 
             }
         });
-        /*new GetImageTaskManager(holder, mContext).execute(newsItem.getImgUrl());*/
+
         if (0 == newsItem.getNewsLastWatched().getTime()) {
             holder.nameTxt.setTextColor(mContext.getResources().getColor(R.color.not_watched_news_color));
         } else {

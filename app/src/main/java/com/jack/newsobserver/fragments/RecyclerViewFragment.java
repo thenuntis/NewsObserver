@@ -32,7 +32,7 @@ import com.jack.newsobserver.helper.TestNetwork;
 import com.jack.newsobserver.manager.HtmlPageManager;
 import com.jack.newsobserver.models.NewsList;
 import com.jack.newsobserver.parser.NewsListFromXmlParser;
-import com.jack.newsobserver.util.ImageCache;
+//import com.jack.newsobserver.util.ImageCache;
 
 import org.xmlpull.v1.XmlPullParserException;
 
@@ -96,7 +96,7 @@ public class RecyclerViewFragment extends Fragment implements SwipeRefreshLayout
     @Override
     public void onRefresh() {
         if (-1 != mSiteId) {
-            ImageCache.clearCache();
+//            ImageCache.clearCache();
             loadNewsList();
         } else {
             showFavorites();

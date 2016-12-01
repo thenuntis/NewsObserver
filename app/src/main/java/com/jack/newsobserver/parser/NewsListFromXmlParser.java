@@ -1,5 +1,6 @@
 package com.jack.newsobserver.parser;
 
+import android.util.Log;
 import com.jack.newsobserver.models.NewsList;
 import com.jack.newsobserver.util.DateTimeUtil;
 
@@ -80,6 +81,9 @@ public class NewsListFromXmlParser {
                         }
                     } else if (tagname.equalsIgnoreCase(KEY_DESCRIPTION) && isDescriptionFromItem) {
                         int startPos = curText.indexOf("http:");
+                        if(-1 == startPos){
+                            startPos = curText.indexOf("https:");
+                        }
                         int finishPos = curText.indexOf("'", startPos);
                         curText = curText.substring(startPos, finishPos);
                         if (null != curNewsList) {
